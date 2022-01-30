@@ -14,7 +14,9 @@ public class Compiler{
             Scanner input = new Scanner(file);
             int linenumber =0;
             int lineposition=0;
+            int errorCount=0;
             //System.out.println("Starting Lex 1");
+            prnt("Lexing Program "+prognum,"", 0,0,"INFO");
             while (input.hasNextLine()){
                 String line = input.nextLine();
                 linenumber = linenumber+1;
@@ -25,13 +27,49 @@ public class Compiler{
                     word = word + charToString.trim();
                     //Test to see if character is a key char ex. (, ), {, }, =, +, !, <, >, $
                     charToString = charToString.trim();
-                    if(specialChar(charToString, linenumber, i+1, true)==true){//This handles printing for all special characters
+                    word = word.trim();
+                    if(specialChar(charToString, linenumber, i+1, true)==true){//This handles printing for all special characters of length 1
+                        word="";                        
+                    }else if(word.equals("/*")){
                         word="";
+                        boolean terminateComment = false;
+                        while(terminateComment==false){
+                            char c = line.charAt(i);
+                            String conv = String.valueOf(c);
+                            if(conv.equals("*")){
+                                if(i+1<line.length()){
+                                    char next = line.charAt(i+1);
+                                    String convnext = String.valueOf(next);
+                                    if(convnext.equals("/")){
+                                        terminateComment=true;
+                                    }
+
+                                }
+
+                            }
+                            if(i==line.length()-1){
+                                if(input.hasNextLine()){
+                                    line=input.nextLine();
+                                    i=0;
+                                }else{
+                                    prnt("Comment Never Terminated","",0, 0, "ERROR");
+                                    errorCount+=1;
+                                    prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,"INFO");
+                                    terminateComment=true;
+                                }
+                            }else{
+                               i+=1; 
+                            }
+                            
+                        }
+
                     }else if(Character.isWhitespace(character)){//Once we remove special characters out we should break into words based on spaces
                        if(!word.equals("")){
                         words.add(word);
-                        System.out.println("DEBUG Lexer - ID [ "+word+" ] Found At ("+linenumber+":"+(i+1)+")");
-                        word="";
+                        //System.out.println("DEBUG Lexer - ID [ "+word+" ] Found At ("+linenumber+":"+(i+1)+")");
+                        prnt("ID", word, linenumber, i+1, "DEBUG");
+                        //System.out.println(word);
+                        word=" ";
                        }
                     }else{
                         char next = line.charAt(i+1);
@@ -39,13 +77,23 @@ public class Compiler{
                         if(specialChar(convert, linenumber, i, false)){//This checks if the next character is a special character
                             if(!word.equals("")){
                                 words.add(word);
-                                System.out.println("DEBUG Lexer - ID [ "+word+" ] Found At ("+linenumber+":"+(i+1)+")");
+                                //System.out.println("DEBUG Lexer - ID [ "+word+" ] Found At ("+linenumber+":"+(i+1)+")");
+                                prnt("ID", word, linenumber, i+1, "DEBUG");
                                 word="";
                                }
                         } 
                     }
                     if(charToString.equals("$")){
-                        System.out.println();
+                        prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,"INFO");
+                        if(input.hasNextLine()){
+                            prognum += 1;
+                            System.out.println();//Separate progs with a space
+                            prnt("Lexing Program "+prognum,"", 0,0,"INFO");
+                        }else if(i<line.length()-1){//If the program doesnt start on the first position of the line
+                            prognum += 1;
+                            System.out.println();//Separate progs with a space
+                            prnt("Lexing Program "+prognum,"", 0,0,"INFO");
+                        }
                     }
                 }
             }
@@ -75,15 +123,30 @@ public class Compiler{
             text="LessThan";
         }else if(character.equals(">")){
             text="GreaterThan";
+        }else if(character.equals("/*")){
+            text="BeginningComment";
+        }else if(character.equals("*/")){
+            text="EndComment";
         }else if(character.equals("$")){
             text="EOP";
         }else{
             return false;
         }
         if(print ==true){//Sometimes we may want to check if a special character is next and not print it as the current character
-            System.out.println("DEBUG Lexer - "+text +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
+            //System.out.println("DEBUG Lexer - "+text +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
+            prnt(text, character, linenumber, i, "DEBUG");
         }
         return true; 
+    }
+    public static void prnt(String name, String character, int linenumber, int i, String type){
+        character = character.trim();
+        if(type.equals("DEBUG")){
+            System.out.println("DEBUG Lexer - "+name +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
+        }else if(type.equals("INFO")){
+            System.out.println("INFO Lexer - "+name);
+        }else if(type.equals("ERROR")){
+            System.out.println("ERROR Lexer - "+name);
+        }
     }
 
 }
