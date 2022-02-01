@@ -18,7 +18,6 @@ public class Compiler{
             int errorCount=0;
             String currentStr="";
             String nums="[0|1|2|3|4|5|6|7|8|9]";
-            //System.out.println("Starting Lex 1");
             prnt("Lexing Program "+prognum,"", 0,0,"INFO");
             while (input.hasNextLine()){
                 String line = input.nextLine();
@@ -41,7 +40,6 @@ public class Compiler{
                     */
                     charToString = charToString.trim();
                     word = word.trim();
-                    //System.out.println(charToString+" "+word+" "+linenumber+":"+i);
                     if(specialChar(charToString, linenumber, i+1, true)==true){//This handles printing for all special characters of length 1
                         word="";                        
                     }else if(word.equals("/*")){//This will ignore anything inside of a comment
@@ -57,9 +55,7 @@ public class Compiler{
                                     if(convnext.equals("/")){//This is reached if the character after a * is a / meaning its the end of a comment
                                         terminateComment=true;
                                     }
-
                                 }
-
                             }
                             if(i==line.length()-1){
                                 if(input.hasNextLine()){//If there is another line, reset counters and keep looking for end comment
@@ -75,9 +71,7 @@ public class Compiler{
                             }else{//If there are more characters still in the line, inc to the next one
                                i+=1; 
                             }
-                            
                         }
-
                     }else if(Character.isWhitespace(character)){//Once we remove special characters out we should break into words based on spaces
                        if(!word.equals("")){
                         words.add(word);
@@ -105,14 +99,6 @@ public class Compiler{
                         }else{
                            char next = line.charAt(i+1);
                             String convert = String.valueOf(next);
-                            // if(specialChar(convert, linenumber, i, false)){//This checks if the next character is a special character
-                            //     if(!word.equals("")){
-                            //     words.add(word);
-                            //     System.out.println("THIS IS BAD IF WE SEE SOMETHING HERE");
-                            //     prnt("ID", word, linenumber, i+1, "DEBUG");
-                            //     word="";
-                            //     }
-                            // }
                             String regex="[a|c|d|e|g|h|j|k|l|m|n|o|q|r|u|v|x|y|z]";
                             String keyregex="[b|f|i|p|s|t|w]";
                             ArrayList<String>matches = new ArrayList<String>();
@@ -124,17 +110,13 @@ public class Compiler{
                             matches.add("string");
                             matches.add("true");
                             matches.add("while");
-                            //System.out.println(matches);
-                            //ArrayList<String>matches = new ArrayList<String>(Arrays.asList("[boolean]","[false]","[if]","[int]","[print]","[string]","[true]","[while]"));
                             if(charToString.matches(regex)&&word.length()==1) {//(p,w,i,s,b,f,t) letters of keywords
                                 if(!word.equals("")){
                                     words.add(word);
-                                    //System.out.println("HERE"+word+"-------");
                                     prnt("ID", word, linenumber, i+1, "DEBUG");
                                     word="";
                                 }
                             }else if(charToString.matches(keyregex)){//If the string matches the beginning of a keyword
-                                //System.out.println(i+" "+ line.charAt(i));
                                  ArrayList<String>match = new ArrayList<String>();
                                  for(int x=0; x<matches.size(); x++){
                                      String current = matches.get(x);
@@ -142,19 +124,16 @@ public class Compiler{
                                          match.add(current);
                                      }
                                  }
-                                 //System.out.println(match);
                                  String concat=charToString;
                                  boolean equals = false;
                                  int inc=1;
                                  for(int x=0; x<match.size(); x++){
                                      while(match.get(x).contains(concat)&&equals==false){
-                                         //System.out.println(concat+" "+match.get(x));
                                         if(concat.length()<=match.get(x).length()){
                                             if(match.get(x).equals(concat)){
                                                 equals=true;
                                                 word=concat;
                                                 i+=inc-1;
-                                                //System.out.println("FOUND: "+word+linenumber+" "+i);
                                                 specialChar(word, linenumber, i, true);
                                                 word="";
                                             }else{
@@ -164,27 +143,17 @@ public class Compiler{
                                             }
                                         }
                                      }
-                                    //  if(match.get(x).contains(concat)){
-                                    //     System.out.println(match.get(x)+" HERE CONCAT: "+concat);
-                                    //     word=charToString;
-                                    //     words.add(word);
-                                    //     prnt("ID", word, linenumber, i+1, "DEBUG");
-                                    //     word="";
-                                    //  }
                                  }
                                  if(equals==false){
-                                     //System.out.println("HERE"+ charToString);
                                     word=charToString;
                                     words.add(word);
                                     prnt("ID", word, linenumber, i+1, "DEBUG");
                                     word="";
                                  }
-                                 
                             }
                             if(specialChar(convert, linenumber, i, false)){//This checks if the next character is a special character
                                 if(!word.equals("")){
                                 words.add(word);
-                                //System.out.println("THIS IS BAD IF WE SEE SOMETHING HERE");
                                 prnt("ID", word, linenumber, i+1, "DEBUG");
                                 word="";
                                 }
@@ -269,7 +238,6 @@ public class Compiler{
         All single char variables that dont start with keyword letters (p,w,i,s,b,f,t)
         */
         if(print ==true){//Sometimes we may want to check if a special character is next and not print it as the current character
-            //System.out.println("DEBUG Lexer - "+text +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
             prnt(text, character, linenumber, i, "DEBUG");
         }
         return true; 
