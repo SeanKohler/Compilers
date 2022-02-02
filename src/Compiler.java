@@ -1,6 +1,5 @@
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 public class Compiler{
     public static void main(String[] args){
@@ -40,7 +39,75 @@ public class Compiler{
                     */
                     charToString = charToString.trim();
                     word = word.trim();
-                    if(specialChar(charToString, linenumber, i+1, true)==true){//This handles printing for all special characters of length 1
+                    //Due to the = symbol being both a single (=) and double (==) character we should test for that before any other special characters
+                    if(charToString.equals("=")){
+                        if(i<line.length()-1){//There is a valid next character in the line
+                            char temp = line.charAt(i+1);
+                            String nextstring = String.valueOf(temp);
+                            if(nextstring.equals("=")){//This should catch a double ==
+                                word="==";
+                                i+=1;
+                                specialChar(word, linenumber, i+1, true);
+                                word="";
+                            }else{//The single = goes here
+                                specialChar(word, linenumber, i+1, true);
+                                word="";
+                            }
+                        }else{//A line shouldn't end in an = but technecally it should pass the lex phase
+                            if(input.hasNextLine()){
+                                line = input.nextLine();
+                                linenumber = linenumber+1;
+                                int saveinc = i;
+                                i=0;
+                                char temp = line.charAt(i);
+                                String tempStr = String.valueOf(temp);
+                                if(tempStr.equals("=")){
+                                    word="==";
+                                    specialChar(word, linenumber, i+1, true);
+                                }else{//We checked the first symbol on the next line and it was not another =
+                                    word="=";
+                                    specialChar(word, linenumber-1, saveinc, true);
+                                }
+                            }else{//last line ended with an =
+                                specialChar(charToString, linenumber, i+1, true);
+                            }
+                        }
+                    }else if(charToString.equals("!")){
+                        if(i<line.length()-1){//There is a valid next character in the line
+                            char temp = line.charAt(i+1);
+                            String nextstring = String.valueOf(temp);
+                            if(nextstring.equals("=")){//This should catch a double !s=
+                                word="!=";
+                                i+=1;
+                                specialChar(word, linenumber, i+1, true);
+                                word="";
+                            }else{//The single ! goes here
+                                prnt("Unrecognized Token ! "+"("+linenumber+":"+i+")","",0, 0, "ERROR");
+                                errorCount+=1;
+                            }
+                        }else{//A line shouldn't end in an = but technecally it should pass the lex phase
+                            if(input.hasNextLine()){
+                                line = input.nextLine();
+                                linenumber = linenumber+1;
+                                int saveinc = i;
+                                i=0;
+                                char temp = line.charAt(i);
+                                String tempStr = String.valueOf(temp);
+                                if(tempStr.equals("=")){
+                                    word="!=";
+                                    specialChar(word, linenumber, i+1, true);
+                                    word="";
+                                }else{//We checked the first symbol on the next line and it was not a =
+                                    word="";
+                                    prnt("Unrecognized Token ! "+"("+(linenumber-1)+":"+saveinc+")","",0, 0, "ERROR");
+                                    prnt("ID", tempStr, linenumber, (i+1), "DEBUG");
+                                }
+                            }else{//last line ended with an =
+                                prnt("Unrecognized Token ! "+"("+linenumber+":"+i+")","",0, 0, "ERROR");
+                            }
+                        }
+                    }
+                    else if(specialChar(charToString, linenumber, i+1, true)==true){//This handles printing for all special characters of length 1
                         word="";                        
                     }else if(word.equals("/*")){//This will ignore anything inside of a comment
                         word="";
@@ -97,7 +164,7 @@ public class Compiler{
                                 word="";
                             }
                         }else{
-                           char next = line.charAt(i+1);
+                            char next = line.charAt(i+1);
                             String convert = String.valueOf(next);
                             String regex="[a|c|d|e|g|h|j|k|l|m|n|o|q|r|u|v|x|y|z]";
                             String keyregex="[b|f|i|p|s|t|w]";
@@ -151,6 +218,30 @@ public class Compiler{
                                     word="";
                                  }
                             }
+                            if(charToString.equals("\"")){
+                                prnt("BeginningQuote", charToString, linenumber, i+1,"DEBUG");
+                                next = line.charAt(i+1);
+                                convert = String.valueOf(next);
+                                boolean found=false;
+                                while(!convert.equals("\"")&&found==false){
+                                    if(i<line.length()-1){
+                                        next = line.charAt(i+1);
+                                        convert = String.valueOf(next);
+                                        i+=1;
+                                        if(convert.equals("\"")){
+                                            prnt("EndQuote", convert, linenumber, i+1,"DEBUG");
+                                            found=true;
+                                        }else{
+                                            prnt("ID", convert, linenumber, i+1,"DEBUG");
+                                        }
+                                    }else{
+                                        prnt("Quote Never Terminated","",0, 0, "ERROR");
+                                        word="";
+                                        errorCount+=1;
+                                        found=true;//Not really but we gotta leave the while loop
+                                    }
+                                }
+                            }
                             if(specialChar(convert, linenumber, i, false)){//This checks if the next character is a special character
                                 if(!word.equals("")){
                                 words.add(word);
@@ -202,8 +293,6 @@ public class Compiler{
             text="Assignment";
         }else if(character.equals("+")){
             text="Addition";
-        }else if(character.equals("!")){
-            text="Negation";
         }else if(character.equals("!=")){
             text="Inequality";
         }else if(character.equals("==")){
@@ -232,7 +321,7 @@ public class Compiler{
             text="EOP";
         }else{
             return false;
-        }//false, true
+        }
         /*
         print, while, if, int, string, boolean, false, true
         All single char variables that dont start with keyword letters (p,w,i,s,b,f,t)
