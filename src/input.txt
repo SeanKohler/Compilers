@@ -1,3 +1,11 @@
+/*CONSTRAINTS OF THE LANGUAGE:
+(0-9)//Single Digit numbers only
+(a-z)//No uppercase
+({,},(,),+,=,!=,==,",int, boolean, string,print, while, if, false, true, $)
+
+ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
+*/
+
 {}$	
 {{{{{{}}}}}}$	
 {{{{{{}}}	/*	comments	are	ignored	*/	}}}}$	
@@ -8,4 +16,7 @@
 	string	b	
 	a	=	b	
 }$
-{"te/*st"/*"te*st"*/}$
+{"te/*st"/*"te*st"*/}$ /* Expected: { " t e / * s t " } $ */
+{10.45}$
+{int a = 0 Stringstring "b=$@"}$
+"""t""int"#x"#"$
