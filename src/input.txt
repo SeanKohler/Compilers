@@ -6,7 +6,7 @@
 ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 */
 
-{}$	
+{}$	   {}$
 {{{{{{}}}}}}$	
 {{{{{{}}}	/*	comments	are	ignored	*/	}}}}$	
 {	/*	comments	are	still	ignored	*/	int	@}$
@@ -16,7 +16,8 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 	string	b	
 	a	=	b	
 }$
-{"te/*st"/*"te*st"*/}$ /* Expected: { " t e / * s t " } $ */
+{"te/*st"/*"te*st"*/}$ /* Expected: { " t e / * s t " } $ */ test$ano@ther$
 {10.45}$
 {int a = 0 Stringstring "b=$@"}$
 """t""int"#x"#"$
+{test$another}$
