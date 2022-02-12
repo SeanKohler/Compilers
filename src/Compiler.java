@@ -20,7 +20,6 @@ public class Compiler {
                     linenumber = tokenStream.get(tokenStream.size() - 1).getLinenumber();
                     lineposition = tokenStream.get(tokenStream.size() - 1).getLineposition();
                     linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
-                    //System.out.println(lineposition+" "+linelen);
                     prognum += 1;
                 } else {
                     for (int i = 0; i < tokenStream.size(); i++) {
@@ -34,11 +33,12 @@ public class Compiler {
                     /*
                      * Parser is next and should be called here
                      */
-                    // System.out.println("-------"+prognum+"------");
+                    
+                    
                     linenumber = tokenStream.get(tokenStream.size() - 1).getLinenumber();
                     lineposition = tokenStream.get(tokenStream.size() - 1).getLineposition();
                     linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
-                    //System.out.println(lineposition+" "+linelen);
+                    //System.out.println(lineposition+" "+linelen+" "+linenumber);
                     System.out.println();// Separate for readability
                     prognum += 1;
                 }

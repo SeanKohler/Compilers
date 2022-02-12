@@ -148,9 +148,9 @@ public class Lexer {
                                     i=0;
                                     //System.out.println("NEXTLINE + HERE");
                                 }else{//This is only reached if there are no more lines & characters and we never got a end comment
-                                    prnt("Comment Never Terminated","",0, 0,line.length(), "ERROR", tokenStream);
+                                    prnt("Comment Never Terminated, Expected - */ ("+linenumber+":"+(line.length()-1)+")","",0, 0,line.length(), "ERROR", tokenStream);
                                     errorCount+=1;
-                                    prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
+                                    //prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
                                     terminateComment=true;
                                 }
                             }else{
@@ -175,9 +175,9 @@ public class Lexer {
                                     i=0;
                                     //System.out.println("NEXTLINE + HERE");
                                 }else{//This is only reached if there are no more lines & characters and we never got a end comment
-                                    prnt("Comment Never Terminated","",0, 0, line.length(),"ERROR", tokenStream);
+                                    prnt("Comment Never Terminated, Expected - */ ("+linenumber+":"+(line.length()-1)+")","",0, 0,line.length(), "ERROR", tokenStream);
                                     errorCount+=1;
-                                    prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
+                                    //prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
                                     terminateComment=true;
                                 }
                             }else{//If there are more characters still in the line, inc to the next one
@@ -188,7 +188,13 @@ public class Lexer {
                     }else if(Character.isWhitespace(character)){//Once we remove special characters out we should break into words based on spaces
                        if(!word.equals("")){
                         words.add(word);
-                        prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                        //System.out.println(word);
+                        if(word.equals("*/")){
+                            prnt("Unrecognized Token: "+word+" ("+linenumber+":"+(i+1)+")","",0, 0,line.length(), "ERROR",tokenStream);
+                            errorCount+=1;
+                        }else{
+                            prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                        }
                         word=" ";
                        }
                     }else if(charToString.matches(nums)){//Numbers 0-9 are caught here
@@ -206,7 +212,14 @@ public class Lexer {
                         if(i==line.length()-1){
                             if(!word.equals("")){//If the line ends with a variable name and there are no spaces following it
                                 words.add(word);
-                                prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                //System.out.println(word);
+                                if(word.equals("*/")){
+                                    prnt("Unrecognized Token: "+word+" ("+linenumber+":"+(i+1)+")","",0, 0,line.length(), "ERROR",tokenStream);
+                                    errorCount+=1;          
+                                }else{
+                                    prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                }
+                                
                                 word="";
                             }
                         }else{
@@ -269,10 +282,13 @@ public class Lexer {
                                 i+=1;
                                 word="";
                                 boolean foundEnd=false;
+                                String cur="";
                                 if(i<line.length()-1){
-                                    while(i<line.length()-1&&foundEnd==false){
+                                    while(i<line.length()&&foundEnd==false){
                                         char temp = line.charAt(i);
                                         String tempstr = String.valueOf(temp);
+                                        cur = tempstr;
+                                        //System.out.println(tempstr + foundEnd);
                                         if(tempstr.equals("\"")){
                                             prnt("EndQuote", tempstr, linenumber, i+1,line.length(),"DEBUG", tokenStream);
                                             //i+=1;
@@ -290,13 +306,21 @@ public class Lexer {
                                         }
                                         //i+=1;
                                     }
+                                    //System.out.println(cur);
+                                    //System.out.println(linenumber+" "+lineposition+" "+i+" "+line.length());
+                                    if(foundEnd==false){
+                                        prnt("Quote Never Terminated, Expected - \" ("+linenumber+":"+line.length()+")","",0, 0,line.length(), "ERROR", tokenStream);
+                                        //prnt("Quote Never Terminated"+" ("+linenumber+":"+(i+1)+")", "", linenumber, i+1,line.length(),"ERROR", tokenStream);
+                                        errorCount+=1;
+                                    }
                                 }else{
-                                    prnt("Quote Never Terminated", "", linenumber, i+1,line.length(),"ERROR", tokenStream);
+                                    prnt("Quote Never Terminated, Expected - \" ("+linenumber+":"+line.length()+")","",0, 0,line.length(), "ERROR", tokenStream);
                                     errorCount+=1;
                                 }
                             }else if(specialChar(convert, linenumber, i,line.length(), false, tokenStream)){//This checks if the next character is a special character
                                 if(!word.equals("")){
                                 words.add(word);
+                                //if word = */
                                 prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
                                 word="";
                                 }
@@ -361,9 +385,13 @@ public class Lexer {
                 }
                 if(!input.hasNextLine()&&lineposition==line.length()-1){//Testing last position of last line of file
                     if(!currentStr.equals("$")){
+                        //System.out.println("IN HERE AT THE END");
+                        Token tkn = new Token(linenumber, lineposition, line.length(), 0, "__ERROR__");
+                        tokenStream.add(tkn);
                         prnt("Program Never Terminated, Expected - $ ("+linenumber+":"+(lineposition+1)+")","",0, 0,line.length(), "ERROR", tokenStream);
                         errorCount+=1;
                         prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
+                        return tokenStream;
                     }
                 }
             }
