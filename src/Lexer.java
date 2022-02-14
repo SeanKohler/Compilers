@@ -6,7 +6,6 @@ public class Lexer {
         ArrayList<Token>tokenStream = new ArrayList<Token>();
         File file = new File(filename);
         ArrayList<String>words = new ArrayList<String>();
-        //int prognum=1;
         String catchup="";
         int increment =0;
           try {
@@ -15,10 +14,7 @@ public class Lexer {
                 catchup = input.nextLine();
                 increment+=1;
             }
-            //int linenumber =0;
-            //int lineposition=0;
             boolean moreOnLine=false;
-            //System.out.println(catchup+" "+lineposition+" "+catchup.length()+" "+linenumber);
             if(lineposition<catchup.length()-1){
                 moreOnLine=true;
             }
@@ -37,7 +33,6 @@ public class Lexer {
                 String word="";
                 for(int i=0; i<line.length(); i++){
                     if(moreOnLine==true){
-                        //System.out.println("IN HERE!@: "+i+" "+lineposition);
                         i=lineposition;
                         moreOnLine=false;
                     }else{
@@ -59,10 +54,7 @@ public class Lexer {
                     */
                     charToString = charToString.trim();
                     word = word.trim();
-                    //System.out.println(word);
-                    if(isValidchar(charToString)||isValidchar(word)||charToString.equals("")){
-                        //System.out.println(charToString+" "+word);
-                    
+                    if(isValidchar(charToString)||isValidchar(word)||charToString.equals("")){                    
                     //Due to the = symbol being both a single (=) and double (==) character we should test for that before any other special characters
                     if(charToString.equals("=")){
                         if(i<line.length()-1){//There is a valid next character in the line
@@ -100,7 +92,7 @@ public class Lexer {
                         if(i<line.length()-1){//There is a valid next character in the line
                             char temp = line.charAt(i+1);
                             String nextstring = String.valueOf(temp);
-                            if(nextstring.equals("=")){//This should catch a double !s=
+                            if(nextstring.equals("=")){//This should catch a double !!=
                                 word="!=";
                                 i+=1;
                                 specialChar(word, linenumber, i+1,line.length(), true, tokenStream);
@@ -131,34 +123,27 @@ public class Lexer {
                                 prnt("Unrecognized Token ! "+"("+linenumber+":"+i+")","",0, 0,line.length(), "ERROR", tokenStream);
                             }
                         }
-                    }
-                    else if(specialChar(charToString, linenumber, i+1,line.length(), true, tokenStream)==true){//This handles printing for all special characters of length 1
+                    }else if(specialChar(charToString, linenumber, i+1,line.length(), true, tokenStream)==true){//This handles printing for all special characters of length 1
                         word="";                        
                     }else if(word.equals("/*")){//This will ignore anything inside of a comment
-                        //System.out.println(word);
                         word="";
                         boolean terminateComment = false;
                         while(terminateComment==false){
-                            //System.out.println("C"+i+" "+line.length());
                             if(line.length()==0){
                                 if(input.hasNextLine()){//If there is another line, reset counters and keep looking for end comment
-                                    //System.out.println("NEXTLINE");
                                     line=input.nextLine();
                                     linenumber+=1;
                                     i=0;
-                                    //System.out.println("NEXTLINE + HERE");
                                 }else{//This is only reached if there are no more lines & characters and we never got a end comment
                                     prnt("Comment Never Terminated, Expected - */ ("+linenumber+":"+(line.length()-1)+")","",0, 0,line.length(), "ERROR", tokenStream);
                                     errorCount+=1;
-                                    //prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
-                                    terminateComment=true;
+                                    terminateComment=true;//We have to do this to break out of the loop. Comment was never terminated
                                 }
                             }else{
                                 char c = line.charAt(i);
                                 String conv = String.valueOf(c);
                                 if(conv.equals("*")){
                                     if(i+1<line.length()){
-                                        //System.out.println(word+"---------------------");
                                         char next = line.charAt(i+1);
                                         String convnext = String.valueOf(next);
                                         if(convnext.equals("/")){//This is reached if the character after a * is a / meaning its the end of a comment
@@ -166,29 +151,24 @@ public class Lexer {
                                         }
                                     }
                                 }
-                            if(i==line.length()-1){
-                                //System.out.println(conv+"---------------------");
-                                if(input.hasNextLine()){//If there is another line, reset counters and keep looking for end comment
-                                    //System.out.println("NEXTLINE");
-                                    line=input.nextLine();
-                                    linenumber+=1;
-                                    i=0;
-                                    //System.out.println("NEXTLINE + HERE");
-                                }else{//This is only reached if there are no more lines & characters and we never got a end comment
-                                    prnt("Comment Never Terminated, Expected - */ ("+linenumber+":"+(line.length()-1)+")","",0, 0,line.length(), "ERROR", tokenStream);
-                                    errorCount+=1;
-                                    //prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
-                                    terminateComment=true;
+                                if(i==line.length()-1){
+                                    if(input.hasNextLine()){//If there is another line, reset counters and keep looking for end comment
+                                        line=input.nextLine();
+                                        linenumber+=1;
+                                        i=0;
+                                    }else{//This is only reached if there are no more lines & characters and we never got a end comment
+                                        prnt("Comment Never Terminated, Expected - */ ("+linenumber+":"+(line.length()-1)+")","",0, 0,line.length(), "ERROR", tokenStream);
+                                        errorCount+=1;
+                                        terminateComment=true;
+                                    }
+                                }else{//If there are more characters still in the line, inc to the next one
+                                    i+=1; 
                                 }
-                            }else{//If there are more characters still in the line, inc to the next one
-                               i+=1; 
-                            }
                             }    
                         }
                     }else if(Character.isWhitespace(character)){//Once we remove special characters out we should break into words based on spaces
                        if(!word.equals("")){
                         words.add(word);
-                        //System.out.println(word);
                         if(word.equals("*/")){
                             prnt("Unrecognized Token: "+word+" ("+linenumber+":"+(i+1)+")","",0, 0,line.length(), "ERROR",tokenStream);
                             errorCount+=1;
@@ -212,7 +192,6 @@ public class Lexer {
                         if(i==line.length()-1){
                             if(!word.equals("")){//If the line ends with a variable name and there are no spaces following it
                                 words.add(word);
-                                //System.out.println(word);
                                 if(word.equals("*/")){
                                     prnt("Unrecognized Token: "+word+" ("+linenumber+":"+(i+1)+")","",0, 0,line.length(), "ERROR",tokenStream);
                                     errorCount+=1;          
@@ -288,7 +267,6 @@ public class Lexer {
                                         char temp = line.charAt(i);
                                         String tempstr = String.valueOf(temp);
                                         cur = tempstr;
-                                        //System.out.println(tempstr + foundEnd);
                                         if(tempstr.equals("\"")){
                                             prnt("EndQuote", tempstr, linenumber, i+1,line.length(),"DEBUG", tokenStream);
                                             //i+=1;
@@ -306,11 +284,8 @@ public class Lexer {
                                         }
                                         //i+=1;
                                     }
-                                    //System.out.println(cur);
-                                    //System.out.println(linenumber+" "+lineposition+" "+i+" "+line.length());
                                     if(foundEnd==false){
                                         prnt("Quote Never Terminated, Expected - \" ("+linenumber+":"+line.length()+")","",0, 0,line.length(), "ERROR", tokenStream);
-                                        //prnt("Quote Never Terminated"+" ("+linenumber+":"+(i+1)+")", "", linenumber, i+1,line.length(),"ERROR", tokenStream);
                                         errorCount+=1;
                                     }
                                 }else{
@@ -332,35 +307,21 @@ public class Lexer {
                         if(errorCount>0){
                             errorCount=0;
                             if(!input.hasNextLine()&&i<line.length()){
-                                //System.out.println("HERE IN END With Errors");
                                 return tokenStream;
                             }else if(input.hasNextLine()){
-                                prnt("Moving on to next program","", 0,0,line.length(),"INFO", tokenStream); 
                                 Token tkn = new Token(linenumber, i+1, line.length(), 0, "__ERROR__");
                                 tokenStream.add(tkn);
                                 return tokenStream;
                             }else{
                                 prnt("No more lines found in file","", 0,0,line.length(),"INFO", tokenStream);  
                             }
-                            
-                            
                         }else{
-                            //System.out.println("HERE IN END Without Errors");
-                            //System.out.println(line.length());
                             for(int x=0; x<tokenStream.size(); x++){
-                                //System.out.println("---- Token: "+x+"----");
                                 Token temp = tokenStream.get(x);
                                 //Here is our token stream
                                 //System.out.println(temp.getTknType()+" "+temp.getCharacter()+" "+temp.getLinenumber()+" "+temp.getLineposition());
                             }
                             return tokenStream;
-                            //System.out.println("PARSING Program: "+prognum);
-                            /*
-                            
-                            DO PARSER HERE
-                            
-                            
-                            */
                         }
                         tokenStream.clear();
                         if(input.hasNextLine()){
@@ -378,14 +339,12 @@ public class Lexer {
                     lineposition=i;//Used to extend scope of i TO DO: [REPLACE INSTANCES OF i WITH lineposition]
                     }else{
                         prnt("Unrecognized Token: "+charToString+" ("+linenumber+":"+(i+1)+")","",0, 0,line.length(), "ERROR",tokenStream);
-                        //System.out.println(word);
                         word="";
                         errorCount+=1;
                     }
                 }
                 if(!input.hasNextLine()&&lineposition==line.length()-1){//Testing last position of last line of file
                     if(!currentStr.equals("$")){
-                        //System.out.println("IN HERE AT THE END");
                         Token tkn = new Token(linenumber, lineposition, line.length(), 0, "__ERROR__");
                         tokenStream.add(tkn);
                         prnt("Program Never Terminated, Expected - $ ("+linenumber+":"+(lineposition+1)+")","",0, 0,line.length(), "ERROR", tokenStream);
@@ -460,21 +419,19 @@ public class Lexer {
             System.out.println("DEBUG Lexer - "+name +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
             if(character.matches("[0-9]")){
                 int number = Integer.valueOf(character);
-                //tokenStream.add(new Token(linenumber,i,number,name));
                 Token tkn = new Token(linenumber, i, linelen, number, name);
                 tokenStream.add(tkn);
             }else{
-                //System.out.println(linenumber+" "+i+" "+character+" "+name);
                 Token tkn = new Token(linenumber, i, linelen, character, name);
                 tokenStream.add(tkn);
             }
         }else if(type.equals("INFO")){
             System.out.println("INFO Lexer - "+name);
-        }else if(type.equals("ERROR")){
+        }else if(type.equals("ERROR")){//I decided against warnings because any warning would fail in the next stages of the Compiler (and i dont want to add to the code that was input). If i detect something, i dont believe it should be passed to the next stage
             System.out.println("ERROR Lexer - "+name);
         }
     }
-    public static boolean isValidchar(String charToString){
+    public static boolean isValidchar(String charToString){//Regex for valid characters in the language
         String regex="[a-z0-9||(|)|{|}|=|+|!|/|*|\"|$]";
         if(charToString.matches(regex)){
             return true;
@@ -482,7 +439,7 @@ public class Lexer {
             return false;
         }
     }
-    public static boolean isValidStringChar(String charToString){
+    public static boolean isValidStringChar(String charToString){//Specifically for inside strings
         String regex="[a-z| ]";
         if(charToString.matches(regex)){
             return true;
