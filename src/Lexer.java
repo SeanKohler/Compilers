@@ -6,6 +6,17 @@ public class Lexer {
         ArrayList<Token>tokenStream = new ArrayList<Token>();
         File file = new File(filename);
         ArrayList<String>words = new ArrayList<String>();
+        String regex="[a|c|d|e|g|h|j|k|l|m|n|o|q|r|u|v|x|y|z]";
+        String keyregex="[b|f|i|p|s|t|w]";
+        ArrayList<String>matches = new ArrayList<String>();
+        matches.add("boolean");
+        matches.add("false");
+        matches.add("if");
+        matches.add("int");
+        matches.add("print");
+        matches.add("string");
+        matches.add("true");
+        matches.add("while");
         String catchup="";
         int increment =0;
           try {
@@ -77,12 +88,29 @@ public class Lexer {
                                 i=0;
                                 char temp = line.charAt(i);
                                 String tempStr = String.valueOf(temp);
+                                //System.out.println(tempStr);
                                 if(tempStr.equals("=")){
                                     word="==";
                                     specialChar(word, linenumber, i+1,line.length(), true, tokenStream);
+                                    word="";
                                 }else{//We checked the first symbol on the next line and it was not another =
                                     word="=";
-                                    specialChar(word, linenumber-1, saveinc,line.length(), true, tokenStream);
+                                    specialChar(word, linenumber-1, saveinc+1,line.length(), true, tokenStream);//Print the =
+                                    word="";
+                                    if(specialChar(tempStr, linenumber, i+1, line.length(), false, tokenStream)){
+                                       specialChar(tempStr, linenumber, i+1,line.length(), true, tokenStream);//Print the first character of next line
+                                        //word="";
+                                    }else if(tempStr.matches(nums)){
+                                        //word="";
+                                        //System.out.println(tempStr);
+                                        prnt("NUM", tempStr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                    }else if(tempStr.matches(keyregex)){
+                                        i=lineWrap(matches, tempStr, word, i, linenumber, line, tokenStream);
+                                    }else{
+                                        //word="";
+                                        prnt("ID", tempStr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                    }
+                                    //System.out.println(tempStr+" "+i);
                                 }
                             }else{//last line ended with an =
                                 specialChar(charToString, linenumber, i+1, line.length(),true, tokenStream);
@@ -116,8 +144,13 @@ public class Lexer {
                                     word="";
                                 }else{//We checked the first symbol on the next line and it was not a =
                                     word="";
-                                    prnt("Unrecognized Token ! "+"("+(linenumber-1)+":"+saveinc+")","",0, 0,line.length(), "ERROR", tokenStream);
-                                    prnt("ID", tempStr, linenumber, (i+1),line.length(), "DEBUG", tokenStream);
+                                    prnt("Unrecognized Token ! "+"("+(linenumber-1)+":"+(saveinc+1)+")","",0, 0,line.length(), "ERROR", tokenStream);
+                                    if(tempStr.matches(keyregex)){
+                                        i=lineWrap(matches, tempStr, word, i, linenumber, line, tokenStream);
+                                    }else{
+                                        //word="";
+                                        prnt("ID", tempStr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                    }
                                 }
                             }else{//last line ended with an =
                                 prnt("Unrecognized Token ! "+"("+linenumber+":"+i+")","",0, 0,line.length(), "ERROR", tokenStream);
@@ -204,17 +237,6 @@ public class Lexer {
                         }else{
                             char next = line.charAt(i+1);
                             String convert = String.valueOf(next);
-                            String regex="[a|c|d|e|g|h|j|k|l|m|n|o|q|r|u|v|x|y|z]";
-                            String keyregex="[b|f|i|p|s|t|w]";
-                            ArrayList<String>matches = new ArrayList<String>();
-                            matches.add("boolean");
-                            matches.add("false");
-                            matches.add("if");
-                            matches.add("int");
-                            matches.add("print");
-                            matches.add("string");
-                            matches.add("true");
-                            matches.add("while");
                             if(charToString.matches(regex)&&word.length()==1) {//(p,w,i,s,b,f,t) letters of keywords
                                 if(!word.equals("")){
                                     words.add(word);
@@ -446,5 +468,40 @@ public class Lexer {
         }else{
             return false;
         }
+    }
+    public static int lineWrap(ArrayList<String> matches,String tempStr,String word, int i, int linenumber, String line, ArrayList<Token>tokenStream){
+        ArrayList<String>match = new ArrayList<String>();
+        for(int x=0; x<matches.size(); x++){
+            String current = matches.get(x);
+            if(current.contains(tempStr)){
+                match.add(current);
+            }
+        }
+        String concat=tempStr;
+        boolean equals = false;
+        int inc=1;
+        for(int x=0; x<match.size(); x++){
+            while(match.get(x).contains(concat)&&equals==false){
+                if(concat.length()<=match.get(x).length()){
+                    if(match.get(x).equals(concat)){
+                        equals=true;
+                        word=concat;
+                        i+=inc-1;
+                        specialChar(word, linenumber, i,line.length(), true, tokenStream);
+                        word="";
+                    }else{
+                    char t=line.charAt(i+inc);
+                    concat+=String.valueOf(t);
+                    inc+=1;
+                    }
+                }
+            }
+        }
+        if(equals==false){
+            word=tempStr;
+            prnt("ID", word, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+            word="";
+        }
+        return i;
     }
 }
