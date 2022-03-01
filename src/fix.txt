@@ -1,0 +1,5 @@
+/* Test case for invalid Expr */
+{
+int a
+a = a + 2
+}$

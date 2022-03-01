@@ -295,7 +295,7 @@ public class Lexer {
                                             foundEnd = true;
                                             word="";
                                         }else if(isValidStringChar(tempstr)){
-                                            prnt("ID", tempstr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
+                                            prnt("CHAR", tempstr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
                                             i+=1;
                                             word="";
                                         }else{
@@ -329,6 +329,8 @@ public class Lexer {
                         if(errorCount>0){
                             errorCount=0;
                             if(!input.hasNextLine()&&i<line.length()){
+                                Token tkn = new Token(linenumber, i+1, line.length(), 0, "__ERROR__");
+                                tokenStream.add(tkn);
                                 return tokenStream;
                             }else if(input.hasNextLine()){
                                 Token tkn = new Token(linenumber, i+1, line.length(), 0, "__ERROR__");
@@ -373,6 +375,12 @@ public class Lexer {
                         errorCount+=1;
                         prnt("Lex Completed with: "+errorCount+" Errors","", 0,0,line.length(),"INFO", tokenStream);
                         return tokenStream;
+                    }else{
+                        if(errorCount > 0){
+                            Token tkn = new Token(linenumber, lineposition, line.length(), 0, "__ERROR__");
+                            tokenStream.add(tkn);
+                            return tokenStream;
+                        }
                     }
                 }
             }

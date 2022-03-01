@@ -13,6 +13,9 @@ public class Compiler {
         int linelen =0;
         int prognum = 1;
         while (hasMoreLines(linenumber, args[0]) == true||(!hasMoreLines(linenumber, args[0]) == true && lineposition < linelen-1)) {
+            /*
+            * Lexer is first and is called here
+            */
             ArrayList<Token> tokenStream = Lexer.Lex(args[0], linenumber,lineposition, prognum);
             if (tokenStream.size() > 0) {
                 if (tokenStream.get(tokenStream.size() - 1).getTknType().equals("__ERROR__")) {
@@ -27,6 +30,10 @@ public class Compiler {
                      * Parser is next and should be called here
                      */
                     //System.out.println("Parsing Program "+prognum);
+                    // for(int i=0; i<tokenStream.size(); i++){
+                    //     System.out.println(tokenStream.get(i).getTknType()+" "+tokenStream.get(i).getCharacter());
+                    // }
+                    Parser.Parse(tokenStream, prognum);
                     
                     
                     //After we complete steps for the program. Grab values in preparation for the next program if there is one
@@ -39,6 +46,9 @@ public class Compiler {
             }else{
                 linenumber+=1;//Needed to break out of the while loop as the file has ended
             }
+            // for(int i=0; i<tokenStream.size(); i++){
+            //     tokenStream.remove(i);
+            // }
         }
     }
 

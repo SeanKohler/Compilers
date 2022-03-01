@@ -5,6 +5,7 @@ public class Token {
     int number;
     String character;
     String tokenType;
+    boolean valid = true;
 
     //We can utilize overloaded methods to account for:
     //Numbers: linenum, linepos, number, tokenType                  (0-9)
@@ -42,5 +43,8 @@ public class Token {
     }
     public String getCharacter(){
         return character;
+    }
+    public boolean getValidStatus(){
+        return valid;
     }
 }

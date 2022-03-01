@@ -1,0 +1,24 @@
+/*CONSTRAINTS OF THE LANGUAGE:
+(0-9)//Single Digit numbers only
+(a-z)//No uppercase
+({,},(,),+,=,!=,==,",int, boolean, string,print, while, if, false, true, $)
+
+ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
+*/
+
+{}$	   {}$
+{{{{{{}}}}}}$	
+{{{{{{}}}	/*	comments	are	ignored	*/	}}}}$	
+{	/*	comments	are	still	ignored	*/	int	@}$
+{	
+	int	a	
+	a	=	a	
+	string	b	
+	a	=	b	
+}$
+{"te/*st"/*"te*st"*/}$ /* Expected: { " t e / * s t " } $ */ test$ano@ther$
+{10.45}$
+{int a = 0 Stringstring "b=$@"}$
+"""t""int"#x"#"$
+{test$anothe#r}${1"a1d2"2!/*$%/*/=}$
+{int a int b a=b string c c="var"}$
