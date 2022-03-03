@@ -33,15 +33,18 @@ public class Compiler {
                     // for(int i=0; i<tokenStream.size(); i++){
                     //     System.out.println(tokenStream.get(i).getTknType()+" "+tokenStream.get(i).getCharacter());
                     // }
-                    Parser.Parse(tokenStream, prognum);
-                    
-                    
-                    //After we complete steps for the program. Grab values in preparation for the next program if there is one
-                    linenumber = tokenStream.get(tokenStream.size() - 1).getLinenumber();
+                    int ln = tokenStream.get(tokenStream.size()-1).getLinenumber();
+                    ArrayList<Token> temp= new ArrayList<Token>();
+                    temp = tokenStream;
+                    Parser.Parse(temp, prognum);
+                    linenumber = ln;
                     lineposition = tokenStream.get(tokenStream.size() - 1).getLineposition();
                     linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
                     System.out.println();// Separate for readability
                     prognum += 1;
+                    
+                    
+                    
                 }
             }else{
                 linenumber+=1;//Needed to break out of the while loop as the file has ended

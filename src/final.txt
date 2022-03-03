@@ -1,4 +1,3 @@
-{inta1trued0booleantrue=false"onlychars"/*!@#$%^*/}
 {while(a==true){
-    b!=c==="test"=
+    b=c==="test"=
 booleana0}}$
