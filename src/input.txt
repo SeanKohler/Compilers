@@ -21,4 +21,6 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 {int a = 0 Stringstring "b=$@"}$
 """t""int"#x"#"$
 {test$anothe#r}${1"a1d2"2!/*$%/*/=}$
-{int a int b a=b string c c="var"}$
+{intaintba=bstringcc="var"}$
+{while(a==true){
+    b=c}}$$$

@@ -309,10 +309,16 @@ public class Lexer {
                                     if(foundEnd==false){
                                         prnt("Quote Never Terminated, Expected - \" ("+linenumber+":"+line.length()+")","",0, 0,line.length(), "ERROR", tokenStream);
                                         errorCount+=1;
+                                        Token tkn = new Token(linenumber, i+1, line.length(), 0, "__ERROR__");
+                                        tokenStream.add(tkn);
+                                        return tokenStream;
                                     }
                                 }else{
                                     prnt("Quote Never Terminated, Expected - \" ("+linenumber+":"+line.length()+")","",0, 0,line.length(), "ERROR", tokenStream);
                                     errorCount+=1;
+                                    Token tkn = new Token(linenumber, i+1, line.length(), 0, "__ERROR__");
+                                    tokenStream.add(tkn);
+                                    return tokenStream;
                                 }
                             }else if(specialChar(convert, linenumber, i,line.length(), false, tokenStream)){//This checks if the next character is a special character
                                 if(!word.equals("")){

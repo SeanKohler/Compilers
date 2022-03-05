@@ -26,35 +26,45 @@ public class Compiler {
                     linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
                     prognum += 1;
                 } else {
+                    int ln = tokenStream.get(tokenStream.size()-1).getLinenumber();
+                    int lp = tokenStream.get(tokenStream.size()-1).getLineposition();
+                    ArrayList<Token> temp= new ArrayList<Token>();
+                    temp = tokenStream;
+
+
                     /*
                      * Parser is next and should be called here
                      */
-                    //System.out.println("Parsing Program "+prognum);
-                    // for(int i=0; i<tokenStream.size(); i++){
-                    //     System.out.println(tokenStream.get(i).getTknType()+" "+tokenStream.get(i).getCharacter());
-                    // }
-                    int ln = tokenStream.get(tokenStream.size()-1).getLinenumber();
-                    ArrayList<Token> temp= new ArrayList<Token>();
-                    temp = tokenStream;
-                    Parser.Parse(temp, prognum);
-                    linenumber = ln;
-                    lineposition = tokenStream.get(tokenStream.size() - 1).getLineposition();
+                    Tree CST =Parser.Parse(temp, prognum);
+                    Node n =CST.getRoot(CST);//Root node of our CST
+                    //System.out.println(n.getName(n));
+                    if(n.getName(n)=="__ERROR__"){
+                        System.out.println("---Parse Errors. Don't Do Semantic Analysis---");
+                    }else{
+                    /**
+                     * 
+                     * Semantic Analysis is next and should be called here
+                     * 
+                     */ 
+
+
+
+
+
+                    }
+                    
+
+                    linenumber = ln;//It gets altered in parse (this fixes that issue)
+                    lineposition = lp;
                     linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
                     System.out.println();// Separate for readability
                     prognum += 1;
-                    
-                    
-                    
                 }
             }else{
                 linenumber+=1;//Needed to break out of the while loop as the file has ended
             }
-            // for(int i=0; i<tokenStream.size(); i++){
-            //     tokenStream.remove(i);
-            // }
         }
     }
-
     public static boolean hasMoreLines(int linenumber, String filename) throws FileNotFoundException {
         File file = new File(filename);
         Scanner input = new Scanner(file);
