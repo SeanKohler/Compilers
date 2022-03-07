@@ -291,8 +291,7 @@ public class Parser {
                     emptyStream(tknStream);
                 }
             } else if (character.equals("ID") || character.equals("CHAR")) {
-                String regex = "[a-z| ]";
-                if(next.getCharacter().matches(regex)){
+                if(isValidStringChar(next.getCharacter())){
                     System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
                 }else{
@@ -411,6 +410,14 @@ public class Parser {
 
     public static void prnt(String method) {
         System.out.println("PARSER: " + method);
+    }
+    public static boolean isValidStringChar(String charToString){//Specifically for inside strings
+        String regex="[a-z| ]";
+        if(charToString.matches(regex)){
+            return true;
+        }else{
+            return false;
+        }
     }
     public static void prntTree(Node node, int indent){
         String spacing = "";

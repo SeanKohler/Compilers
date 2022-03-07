@@ -295,6 +295,9 @@ public class Lexer {
                                             foundEnd = true;
                                             word="";
                                         }else if(isValidStringChar(tempstr)){
+                                            if(tempstr.equals(" ")){
+                                                tempstr="__SPACE__";
+                                            }
                                             prnt("CHAR", tempstr, linenumber, i+1,line.length(), "DEBUG", tokenStream);
                                             i+=1;
                                             word="";
@@ -452,6 +455,9 @@ public class Lexer {
     public static void prnt(String name, String character, int linenumber, int i, int linelen, String type, ArrayList<Token> tokenStream){
         character = character.trim();
         if(type.equals("DEBUG")){
+            if(character.equals("__SPACE__")){
+                character=" ";
+            }
             System.out.println("DEBUG Lexer - "+name +" [ "+character+" ] Found At ("+linenumber+":"+i+")");
             if(character.matches("[0-9]")){
                 int number = Integer.valueOf(character);
