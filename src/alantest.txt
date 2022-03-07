@@ -1,2 +1,16 @@
-{print(007)}$
-{a=12}$
+/* You’re expecting anything that could start a statement or SYMBOL_CLOSE_BLOCK. */
+  {a=12}$
+  {1 = 2}$
+  /* You’re expecting any Bool_Expression */
+  {
+      while "a" {
+          print ( "a" )
+      }  
+      print ( "done" )
+  }$
+  /* Checking to make sure this works */
+  {
+      while (1 == 1) {
+          print(true)
+      }
+  }$

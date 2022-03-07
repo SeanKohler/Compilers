@@ -22,8 +22,21 @@ intaintba=0booleana=0boolena=5$
 }$
 /* Test case for WhileStatement.
 Prints 23458 */{int a a=1 {while(a!
-=5){a==1+a print(a)} print(3+a)}}$
+=5){a=1+a print(a)} print(3+a)}}$
 /* Test case for WhileStatement.
 Prints 23458 */{int a a=1 {while(a!
 =5){a==1+a print(a)} print(3+a)}}$
 {string="abc /*# de */ fg" "i$#n$t"#=!==== } $
+/* Test case for WhileStatement.
+ Prints 23458 */
+{
+ int a
+ a = 1
+ {
+ while (a != 5) {
+ a = 1 + a
+ print(a)
+ }
+ print(3 + a)
+ }
+}$

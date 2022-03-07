@@ -91,8 +91,12 @@ public class Parser {
             tree.moveUp("ε");
             return tknStream;
         } else {
-            prnt("TYPE: " + type + " Invalid for STATEMENT");
-            tknStream = emptyStream(tknStream);// Removes contents and adds an Error Token
+            if(type.equals("__ERROR__")){
+                //Do Nothing, we saw the error
+            }else{
+                prnt("TYPE: " + type + " Invalid for STATEMENT AT - ("+next.getLinenumber()+":"+next.getLineposition()+")");
+                tknStream = emptyStream(tknStream);// Removes contents and adds an Error Token    
+            }
         }
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE STATEMENT");
@@ -199,6 +203,9 @@ public class Parser {
             Match("true", tknStream, tree, valid);
         }else if(type.equals("BOOL_F")){
             Match("false", tknStream, tree, valid);
+        }else{
+            prnt("EXPECTED: BooleanExpression GOT: "+next.getCharacter());
+            tknStream =emptyStream(tknStream);
         }
         tree.moveUp("BOOLEXPR");
         return tknStream;
@@ -284,9 +291,18 @@ public class Parser {
                     emptyStream(tknStream);
                 }
             } else if (character.equals("ID") || character.equals("CHAR")) {
-                System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
-                tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
-                //tree.moveUp("Match-ID/Char");                
+                String regex = "[a-z| ]";
+                if(next.getCharacter().matches(regex)){
+                    System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                    tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
+                }else{
+                    valid = false;
+                    prnt("INVALID - EXPECTED: [a-z| ] GOT: "+next.getCharacter()+" AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    emptyStream(tknStream);
+                }
+                // System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                // tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
+                // //tree.moveUp("Match-ID/Char");                
             } else if (character.equals(next.getCharacter())) {//Matches exact characters
                 System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
                 tree.addNode(tknStream.get(0), "leaf", character);//If it matched Add it as a leaf node
@@ -379,8 +395,8 @@ public class Parser {
     public static ArrayList<Token> emptyStream(ArrayList<Token> tknStream) {
         int linenum = tknStream.get(0).getLinenumber();
         int linepos = tknStream.get(0).getLineposition();
-        for (int i = 0; i < tknStream.size(); i++) {// Once parse is invalid. We should empty tknStream to exit the parse
-            tknStream.remove(i);
+        while(tknStream.size()>0){// Once parse is invalid. We should empty tknStream to exit the parse
+            tknStream.remove(0);
         }
         Token tkn = new Token(linenum, linepos, 0, 0, "__ERROR__");//We add this so we know there was an error
         tkn.valid = false;
@@ -405,9 +421,12 @@ public class Parser {
             spacing+="<" + node.name + ">";
             System.out.println(spacing);//This line prints the branches
             for(int j=0; j<node.children.size(); j++){
-                prntTree(node.children.get(j), indent+1);//We add one to create separation
+                prntTree(node.children.get(j), indent+1);//We add one to create separation for its child nodes
             }
         }else{
+            if(node.name.equals("Statement")||node.name.equals("CharList")){//If these have no children, they are the espilon case
+                node.name ="epsilon";
+            }
             spacing+="[" + node.name + "] ";
             System.out.println(spacing);//This line prints the leaf nodes
         }
