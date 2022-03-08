@@ -3,8 +3,8 @@ import java.util.ArrayList;
 public class Parser {
     public static Tree Parse(ArrayList<Token> tokenStream, int prognum) {
         Tree tree = new Tree();
-        prnt("Parsing Program: " + prognum);
-        prnt("parse()");
+        prnt("Parsing Program: " + prognum,"INFO");
+        prnt("parse()","DEBUG");
         ArrayList<Token> temp = tokenStream;// This way we dont detroy the origin tokenStream
         boolean valid = true;
         ParseProgram(temp, tree, valid);
@@ -24,33 +24,33 @@ public class Parser {
     }
 
     public static ArrayList<Token> ParseProgram(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseProgram()");
+        prnt("parseProgram()","DEBUG");
         tree.addNode(tknStream.get(0), "root", "program");//Program Root
         ParseBlock(tknStream, tree, valid);
         valid = validtest(tknStream);
         if (valid) {
             Match("$", tknStream, tree, valid);
         }else{
-            prnt("Invalid in ParseProgram");
+            prnt("Invalid in ParseProgram","ERROR");
         }
         return tknStream;
     }
 
     public static ArrayList<Token> ParseBlock(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseBlock()");
+        prnt("parseBlock()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "Block");//Each new block is a branch
         Match("{", tknStream, tree, valid);
         ParseStatementList(tknStream, tree, valid);
         Match("}", tknStream, tree, valid);
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSEBLOCK");
+            prnt("INVALID IN PARSEBLOCK","ERROR");
         }
         tree.moveUp("Block");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseStatementList(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseStatementList()");
+        prnt("parseStatementList()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "StatementList");//Each new StatementList is a branch
         ParseStatement(tknStream, tree, valid);
         if (!isValidStatement(tknStream)) {
@@ -60,7 +60,7 @@ public class Parser {
             ParseStatementList(tknStream, tree, valid);
         }
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE STATEMENT LIST");
+            prnt("INVALID IN PARSE STATEMENT LIST","ERROR");
         }
         tree.moveUp("StmtList");
         return tknStream;
@@ -68,7 +68,7 @@ public class Parser {
     }
 
     public static ArrayList<Token> ParseStatement(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseStatement()");
+        prnt("parseStatement()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "Statement");//Each new Statement is a branch
         Token next = tknStream.get(0);
         String type = next.getTknType();
@@ -94,19 +94,19 @@ public class Parser {
             if(type.equals("__ERROR__")){
                 //Do Nothing, we saw the error
             }else{
-                prnt("TYPE: " + type + " Invalid for STATEMENT AT - ("+next.getLinenumber()+":"+next.getLineposition()+")");
+                prnt("TYPE: " + type + " Invalid for STATEMENT AT - ("+next.getLinenumber()+":"+next.getLineposition()+")","ERROR");
                 tknStream = emptyStream(tknStream);// Removes contents and adds an Error Token    
             }
         }
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE STATEMENT");
+            prnt("INVALID IN PARSE STATEMENT","ERROR");
         }
         tree.moveUp("STMT");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseExpression(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseExpression()");
+        prnt("parseExpression()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "Expression");//Each new Expression is a branch
         Token next = tknStream.get(0);
         String type = next.getTknType();
@@ -118,17 +118,20 @@ public class Parser {
             ParseBooleanExpression(tknStream, tree, valid);
         } else if (type.equals("ID")) {// MatchID
             Match("ID", tknStream, tree, valid);
+        }else{
+            prnt("INVALID IN EXPRESSION GOT: "+next.getCharacter(),"ERROR");
+            emptyStream(tknStream);
         }
 
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE EXPRESSION");
+            prnt("INVALID IN PARSE EXPRESSION","ERROR");
         }
         tree.moveUp("EXPR");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseIntExpr(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseIntExpression()");
+        prnt("parseIntExpression()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "IntExpression");//Each new IntExpression is a branch
         Token next = tknStream.get(0);
         String type = next.getTknType();
@@ -145,41 +148,41 @@ public class Parser {
             }
         }
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE INT EXPRESSION");
+            prnt("INVALID IN PARSE INT EXPRESSION","ERROR");
         }
         tree.moveUp("INTEXPR");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseStringExpression(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseStringExpression()");
+        prnt("parseStringExpression()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "StringExpression");//Each new StringExpression is a branch
         Match("BeginningQuote", tknStream, tree, valid);
         ParseCharList(tknStream, tree, valid);
         Match("EndQuote", tknStream, tree, valid);
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE STRING EXPRESSION");
+            prnt("INVALID IN PARSE STRING EXPRESSION","ERROR");
         }
         tree.moveUp("STREXPR");
         return tknStream;
     }
 
     public static ArrayList<Token> ParsePrintStatement(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parsePrintStatement()");
+        prnt("parsePrintStatement()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "PrintStatement");//Each new PrintStatement is a branch
         Match("print", tknStream, tree, valid);
         Match("(", tknStream, tree, valid);
         ParseExpression(tknStream, tree, valid);
         Match(")", tknStream, tree, valid);
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE PRINT STATEMENT");
+            prnt("INVALID IN PARSE PRINT STATEMENT","ERROR");
         }
         tree.moveUp("PRNTSTMT");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseWhileStatement(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseWhileStatement()");
+        prnt("parseWhileStatement()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "WhileStatement");//Each new WhileStatement is a branch
         Match("while", tknStream, tree, valid);
         ParseBooleanExpression(tknStream, tree, valid);
@@ -189,7 +192,7 @@ public class Parser {
     }
 
     public static ArrayList<Token> ParseBooleanExpression(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseBooleanExpression()");
+        prnt("parseBooleanExpression()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "BooleanExpression");//Each new BooleanExpression is a branch
         Token next = tknStream.get(0);
         String type = next.getTknType();
@@ -204,7 +207,7 @@ public class Parser {
         }else if(type.equals("BOOL_F")){
             Match("false", tknStream, tree, valid);
         }else{
-            prnt("EXPECTED: BooleanExpression GOT: "+next.getCharacter());
+            prnt("EXPECTED: BooleanExpression GOT: "+next.getCharacter(),"ERROR");
             tknStream =emptyStream(tknStream);
         }
         tree.moveUp("BOOLEXPR");
@@ -212,7 +215,7 @@ public class Parser {
     }
 
     public static ArrayList<Token> ParseIfStatement(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseIfStatement()");
+        prnt("parseIfStatement()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "IfStatement");//Each new IfStatement is a branch
         Match("if", tknStream, tree, valid);
         ParseBooleanExpression(tknStream, tree, valid);
@@ -230,13 +233,13 @@ public class Parser {
             Match("boolean", tknStream, tree, valid);
         }
         if (!validtest(tknStream)) {
-            prnt("INVALID IN TYPE CHECK");
+            prnt("INVALID IN TYPE CHECK","ERROR");
         }
         return tknStream;
     }
 
     public static ArrayList<Token> ParseCharList(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseCharList()");
+        prnt("parseCharList()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "CharList");//Each new CharList is a branch
         Token current = tknStream.get(0);
         String type = current.getTknType();
@@ -250,14 +253,14 @@ public class Parser {
          * ::== char CharList ::== space CharList ::== ε
          */
         if (!validtest(tknStream)) {
-            prnt("INVALID IN PARSE CHAR LIST");
+            prnt("INVALID IN PARSE CHAR LIST","ERROR");
         }
         tree.moveUp("CHARLIST");
         return tknStream;
     }
 
     public static ArrayList<Token> ParseBoolOp(ArrayList<Token> tknStream, Tree tree, boolean valid) {
-        prnt("parseBoolOp()");
+        prnt("parseBoolOp()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "BoolOp");//Each new BoolOp is a branch
         Token next = tknStream.get(0);
         if (next.tokenType.equals("Inequality")) {// Inequality
@@ -282,28 +285,28 @@ public class Parser {
                 String regex = "[0-9]";
                 int num = next.getNumber();
                 if (String.valueOf(num).matches(regex)&&character.equals("NUM")) {
-                    System.out.println(character + " Matched: " + next.getNumber() + " - (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    prnt(character + " Matched: " + next.getNumber() + " - (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+num);//If it matched Add it as a leaf node
                     //tree.moveUp("MATCH-Num");
                 } else {
                     valid = false;
-                    prnt("INVALID - EXPECTED: "+character+" GOT: [0-9] AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    prnt("INVALID - EXPECTED: "+character+" GOT: [0-9] AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
                 }
             } else if (character.equals("ID") || character.equals("CHAR")) {
                 if(isValidStringChar(next.getCharacter())){
-                    System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                    prnt(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
                 }else{
                     valid = false;
-                    prnt("INVALID - EXPECTED: [a-z| ] GOT: "+next.getCharacter()+" AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    prnt("INVALID - EXPECTED: [a-z| ] GOT: "+next.getCharacter()+" AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
                 }
                 // System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
                 // tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
                 // //tree.moveUp("Match-ID/Char");                
             } else if (character.equals(next.getCharacter())) {//Matches exact characters
-                System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                prnt(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                 tree.addNode(tknStream.get(0), "leaf", character);//If it matched Add it as a leaf node
                 //tree.moveUp("Match: "+character);
                 if(character.equals("$")){
@@ -313,22 +316,22 @@ public class Parser {
                 }
             } else if (character.equals("Assignment")) {
                 if (next.getCharacter().equals("=")) {
-                    System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                    prnt(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
                     //tree.moveUp("Match: Assn (=)");
                 } else {
                     valid = false;
-                    prnt("INVALID - EXPECTED: [=] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    prnt("INVALID - EXPECTED: [=] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
                 }
             } else if (character.equals("BeginningQuote") || character.equals("EndQuote")) {
                 if (next.character.equals("\"")) {
-                    System.out.println(character + "Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
+                    prnt(character + "Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
                     //tree.moveUp("Match Quote");
                 } else {
                     valid = false;
-                    prnt("INVALID - EXPECTED: [\"] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")");
+                    prnt("INVALID - EXPECTED: [\"] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
                 }
 
@@ -338,7 +341,7 @@ public class Parser {
                 tknStream.get(0).valid = false;
                 return tknStream;
             } else {
-                prnt("INVALID - EXPECTED: [" + character + "] GOT: " + next.getCharacter() + " AT ("+ next.getLinenumber() + ":" + next.getLineposition() + ")");
+                prnt("INVALID - EXPECTED: [" + character + "] GOT: " + next.getCharacter() + " AT ("+ next.getLinenumber() + ":" + next.getLineposition() + ")","ERROR");
                 valid = false;
                 emptyStream(tknStream);
             }
@@ -408,8 +411,14 @@ public class Parser {
         return valid;
     }
 
-    public static void prnt(String method) {
-        System.out.println("PARSER: " + method);
+    public static void prnt(String method, String type) {
+        if(type.equals("DEBUG")){
+            System.out.println("DEBUG Parser: " + method);
+        }else if(type.equals("ERROR")){
+            System.out.println("ERROR Parser: " + method);
+        }else if(type.equals("INFO")){
+            System.out.println("INFO Parser: " + method);
+        }
     }
     public static boolean isValidStringChar(String charToString){//Specifically for inside strings
         String regex="[a-z| ]";

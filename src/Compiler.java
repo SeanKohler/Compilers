@@ -28,6 +28,7 @@ public class Compiler {
                 } else {
                     int ln = tokenStream.get(tokenStream.size()-1).getLinenumber();
                     int lp = tokenStream.get(tokenStream.size()-1).getLineposition();
+                    int ll = tokenStream.get(tokenStream.size()-1).getLinelen();
                     ArrayList<Token> temp= new ArrayList<Token>();
                     temp = tokenStream;
 
@@ -56,7 +57,7 @@ public class Compiler {
 
                     linenumber = ln;//It gets altered in parse (this fixes that issue)
                     lineposition = lp;
-                    linelen = tokenStream.get(tokenStream.size() -1 ).getLinelen();
+                    linelen =ll;
                     System.out.println();// Separate for readability
                     prognum += 1;
                 }

@@ -1,24 +1,2 @@
-/* Valid test case */
-  {
-      int a	
-      boolean b
-      {	
-          string	c	
-          a = 5
-          b = true /*nocomment*/
-          c = "int a" 
-          print(c)
-      }
-      
-      print(b)
-      print(a)
-  }$	
-  /* Should fail due to missing variable declaration for 'b' */
-  {
-      int a
-      {
-          boolean b
-          a = 1
-      }
-      print(b)
-  }$
+/* JUICES TEST CASE Test case for crazy one liner */
+${hellotruefalse!======trueprinta=3b=0print("false true")whi33leiftruefalsestring!= stringintbooleanaa truewhileif{hi+++==!==}}/*aaahaha*/hahahahaha/*awao*/$
