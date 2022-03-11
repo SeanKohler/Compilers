@@ -19,7 +19,7 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 {"te/*st"/*"te*st"*/}$ /* Expected: { " t e / * s t " } $ */ test$ano@ther$
 {10.45}$
 {int a = 0 Stringstring "b=$@"}$
-"""t""int"#x"#"$
+{string s s=""s="t"s="int"x=""}$
 {test$anothe#r}${1"a1d2"2!/*$%/*/=}$
 {intaintba=bstringcc="var"}$
 {while(a==true){

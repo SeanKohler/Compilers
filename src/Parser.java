@@ -8,16 +8,19 @@ public class Parser {
         ArrayList<Token> temp = tokenStream;// This way we dont detroy the origin tokenStream
         boolean valid = true;
         ParseProgram(temp, tree, valid);
+
         if (validtest(temp)) {
-            System.out.println("------------");
-            System.out.println("PARSE SUCCESS");
-            System.out.println("PRINTING CST");
-            System.out.println("------------");
+            // System.out.println("------------");
+            // System.out.println("PARSE SUCCESS");
+            // System.out.println("PRINTING CST");
+            // System.out.println("------------");
+            prnt("Parse Completed with: 0 Errors","INFO");
             prntTree(tree.root, 0);
         } else {
             System.out.println("------------");
             System.out.println("PARSE FAILED");
             System.out.println("------------");
+            //prnt("---Parse Errors, Dont create CST---","INFO");
             tree.getRoot(tree).name ="__ERROR__";
         }
         return tree;
