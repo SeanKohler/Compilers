@@ -10,10 +10,6 @@ public class Parser {
         ParseProgram(temp, tree, valid);
 
         if (validtest(temp)) {
-            // System.out.println("------------");
-            // System.out.println("PARSE SUCCESS");
-            // System.out.println("PRINTING CST");
-            // System.out.println("------------");
             prnt("Parse Completed with: 0 Errors","INFO");
             prntTree(tree.root, 0);
         } else {
@@ -142,7 +138,6 @@ public class Parser {
             Match("NUM", tknStream, tree, valid);
             next = tknStream.get(0);
             type = next.getTknType();
-            //System.out.println(type);
             if (tknStream.size() > 1 && type.equals("Addition")) {// If next is +
                 Match("+", tknStream, tree, valid);// Match(+)
                 ParseExpression(tknStream, tree, valid); // ParseExpr
@@ -250,11 +245,6 @@ public class Parser {
             Match("CHAR", tknStream, tree, valid);
             current = tknStream.get(0);
         }
-        /**
-         * 
-         * 
-         * ::== char CharList ::== space CharList ::== ε
-         */
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE CHAR LIST","ERROR");
         }
@@ -278,19 +268,12 @@ public class Parser {
     public static ArrayList<Token> Match(String character, ArrayList<Token> tknStream, Tree tree, boolean valid) {
         if (validtest(tknStream)) {
             Token next = tknStream.get(0);
-            // System.out.println();
-            // System.out.println("TKNTYPE: "+next.getTknType());
-            // System.out.println("TKN CHARACTER: "+next.getCharacter());
-            // System.out.println("TKN NUM: "+next.getNumber());
-            // System.out.println("PASSED CHARACTER: "+character);
-            // System.out.println();
             if (next.tokenType.equals("NUM")) {
                 String regex = "[0-9]";
                 int num = next.getNumber();
                 if (String.valueOf(num).matches(regex)&&character.equals("NUM")) {
                     prnt(character + " Matched: " + next.getNumber() + " - (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+num);//If it matched Add it as a leaf node
-                    //tree.moveUp("MATCH-Num");
                 } else {
                     valid = false;
                     prnt("INVALID - EXPECTED: "+character+" GOT: [0-9] AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
@@ -304,24 +287,14 @@ public class Parser {
                     valid = false;
                     prnt("INVALID - EXPECTED: [a-z| ] GOT: "+next.getCharacter()+" AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
-                }
-                // System.out.println(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")");
-                // tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
-                // //tree.moveUp("Match-ID/Char");                
+                }              
             } else if (character.equals(next.getCharacter())) {//Matches exact characters
                 prnt(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                 tree.addNode(tknStream.get(0), "leaf", character);//If it matched Add it as a leaf node
-                //tree.moveUp("Match: "+character);
-                if(character.equals("$")){
-                    //tree.moveUp("Match: "+character);
-                }else{
-                    //tree.moveUp("Match: "+character);
-                }
             } else if (character.equals("Assignment")) {
                 if (next.getCharacter().equals("=")) {
                     prnt(character + " Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
-                    //tree.moveUp("Match: Assn (=)");
                 } else {
                     valid = false;
                     prnt("INVALID - EXPECTED: [=] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
@@ -331,15 +304,13 @@ public class Parser {
                 if (next.character.equals("\"")) {
                     prnt(character + "Matched: " + next.getCharacter() + " - (" + next.getLinenumber()+ ":" + next.getLineposition() + ")","DEBUG");
                     tree.addNode(tknStream.get(0), "leaf", character+" , "+next.getCharacter());//If it matched Add it as a leaf node
-                    //tree.moveUp("Match Quote");
                 } else {
                     valid = false;
                     prnt("INVALID - EXPECTED: [\"] GOT: " + next.getCharacter() + " AT (" + next.getLinenumber() + ":"+ next.getLineposition() + ")","ERROR");
                     emptyStream(tknStream);
                 }
 
-            } else if (next.tokenType.equals("__ERROR__")) {
-                //System.out.println("ERROR IN MATCH");
+            } else if (next.tokenType.equals("__ERROR__")) {//We got an error in match()
                 valid = false;
                 tknStream.get(0).valid = false;
                 return tknStream;
@@ -349,7 +320,6 @@ public class Parser {
                 emptyStream(tknStream);
             }
         } else {
-            //System.out.println("ERRORS DONT MATCH");
             emptyStream(tknStream);
         }
 
@@ -366,14 +336,9 @@ public class Parser {
         } else {
             //System.out.println("Ended");
         }
-        /*
-         * Match("BeginningQuote", tknStream); //CharList Match("EndQuote", tknStream);
-         */
         if (valid == false) {
             tknStream.get(0).valid = false;
         }
-        //tree.moveUp("Match");
-        //System.out.println("HERE"+tknStream.size());
         return tknStream;
     }
 

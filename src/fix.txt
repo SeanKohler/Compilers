@@ -1,5 +1,7 @@
-/* Test case for invalid Expr */
-{
-int a
-a = a + 2
-}$
+{{{}}{/**}int temp test string*
+*/}}$
+/* SONARS TEST CASE: This will fail because an identifier is expected but not provided */
+  {
+    /* 1 is not a valid identifier */
+    string 1
+  }$

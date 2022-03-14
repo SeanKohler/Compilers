@@ -6,7 +6,7 @@
 */$ {}/*$$$$$$$ $ $$ $ *Test/ */Test another $/*
 (#)Test *\/$*/$
 {a/*bcd*/ef()}$
-intaintba=0booleana=0boolena=5$
+{intaintba=0booleanaa=0boolenaa=5}$
 /* Test case for WhileStatement.
  Prints 23458 */
 {
