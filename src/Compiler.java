@@ -30,8 +30,10 @@ public class Compiler {
                     int lp = tokenStream.get(tokenStream.size()-1).getLineposition();
                     int ll = tokenStream.get(tokenStream.size()-1).getLinelen();
                     ArrayList<Token> temp= new ArrayList<Token>();
-                    temp = tokenStream;
-
+                    for(int i=0; i<tokenStream.size(); i++){
+                        Token t = tokenStream.get(i);
+                        temp.add(t);
+                    }
 
                     /*
                      * Parser is next and should be called here
@@ -47,11 +49,7 @@ public class Compiler {
                      * Semantic Analysis is next and should be called here
                      * 
                      */ 
-
-
-
-
-
+                    Tree AST = SemanticAnalysis.Semantic_Analysis(tokenStream, prognum);
                     }
                     
 
@@ -82,5 +80,24 @@ public class Compiler {
             return false;
         }
 
+    }
+    public static void retrieveTokens(Node node, int indent){
+        String spacing = "";
+        for(int i=0;i<indent; i++){
+            spacing+="-";
+        }         
+        if(node.children.size() > 0){//Branches have children, leaf nodes do not
+            spacing+="<" + node.name + ">";
+            System.out.println(spacing);//This line prints the branches
+            for(int j=0; j<node.children.size(); j++){
+                retrieveTokens(node.children.get(j), indent+1);//We add one to create separation for its child nodes
+            }
+        }else{
+            if(node.name.equals("Statement")||node.name.equals("CharList")){//If these have no children, they are the espilon case
+                node.name ="epsilon";
+            }
+            spacing+="[" + node.name + "] ";
+            System.out.println(spacing);//This line prints the leaf nodes
+        }
     }
 }
