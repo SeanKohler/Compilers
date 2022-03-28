@@ -24,3 +24,8 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 {intaintba=bstringcc="var"}$
 {while(a==true){
     b=c}}$$$
+{string s="test"}$
+{int a a=1 while(a==true){
+	int b b=2
+	a=b
+}}$
