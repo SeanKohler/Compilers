@@ -2,8 +2,8 @@ public class Tree {
     Node root = null;
     Node current = null;
 
-    public void addNode(Token tkn, String type, String name){
-        Node n = new Node(tkn, name);//This is the new node we want to add
+    public void addNode(Token tkn, String type, String name, int scope){
+        Node n = new Node(tkn, name, scope);//This is the new node we want to add
         if(this.root == null){
             this.root = n;//If there is no root, make it the root
             n.Parent = null;//From slides
