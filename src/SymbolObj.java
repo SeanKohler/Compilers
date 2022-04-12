@@ -6,6 +6,7 @@ public class SymbolObj {
     boolean used;
     int scope;
     ArrayList<String> errors = new ArrayList<String>();
+    Token associated;
     public SymbolObj(String type, boolean init, boolean used, int scope){
         this.type = type;
         this.init = init;
@@ -26,5 +27,8 @@ public class SymbolObj {
     }
     public ArrayList<String> getErrors(){
         return errors;
+    }
+    public Token getAssociated(){
+        return associated;
     }
 }

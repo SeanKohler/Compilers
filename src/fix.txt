@@ -1,51 +1,22 @@
-/*
-  Scope tree test.
-      (Scope)
-      * a | Type: int Used: true, Line: 4, Pos:5
-      * d | Type: int Used: false, Line: 7, Pos:5
-      * z | Type: int Used: true, Line: 9, Pos:5
-      - (Scope)
-      -- [Scope]
-      - (Scope)
-      -- (Scope)
-      --- [Scope]
-      **** b | Type: int Used: false, Line: 5, Pos:8
-      - [Scope]
-      ** c | Type: int Used: false, Line: 6, Pos:6
-      - (Scope)
-      ** e | Type: int Used: false, Line: 8, Pos:6
-      -- [Scope]
-      *** f | Type: int Used: false, Line: 8, Pos:13
-      - [Scope]
-  */
-  {
-      {
-          {
-          }
-      }
-      
-      int a
-      
-      {
-          {
-              {
-                  int b
-              }
-          }
-      }
-      {
-          int c
-      }
-      int d
-      {
-          int e 
-          {
-              int f
-          }
-      }
-      int z
-      {
-          b = 3 
-          a = 3
-      }
-  }$
+/* This test case is included because it completely messed
+- up my AST with boolean hell and keeping track of boolexpr
+- may it serve as a good benchmark for those who come after
+- CREDIT: TIEN */
+{
+int a
+a = 0
+boolean b
+b = false
+boolean c
+c = true
+while(((a!=9) == ("test" != "alan")) == ((5==5) != (b == c))) {
+print("a")
+string d
+d = "yes"
+print(d)
+{
+    int a
+    a = 5
+}
+}
+}$

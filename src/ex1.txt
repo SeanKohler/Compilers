@@ -1,36 +1,5 @@
-
-  /* SVEGLIATOR TEST CASE: Should pass lex, parse, but fail at semantic analysis...*/
-  {
-    int a
-    a = 1
-    print(a)
-    {
-        int a
-        a = 2
-        print(a)
-    }
-    {
-        int a
-        a = 3
-        print(a)
-    }
-    string s
-    s = "stra"
-    print(s)
-    s = "strb"
-    print((s == "str"))
-    if (a != 5) {
-        print((true == (s == s)))
-    }
-    if (a == 5) {
-        print("false")
-    }
-    s = "meowa"
-    s = "meowb"
-    s = "meowc"
-    s = "meowd"
-    s = "meowe"
-    s = "meowf"
-    int z
-    z = 5
-  } $
+/* Variables being used but not declared first */
+{
+int a
+b = 4
+}$
