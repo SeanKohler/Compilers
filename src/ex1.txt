@@ -1,5 +1,10 @@
 /* Variables being used but not declared first */
 {
+int z
 int a
-b = 4
+a=2
+while(a==1){
+    z=1
+}
+print(z)
 }$

@@ -22,7 +22,7 @@
 }$
 /* Test case for WhileStatement.
 Prints 23458 */{int a a=1 {while(a!
-=5){a=1+a print(a)} print(3+a)}}$
+=5){a=1+a print(a)} print(true+a)}}$
 /* Test case for WhileStatement.
 Prints 23458 */{int a a=1 {while(a!
 =5){a==1+a print(a)} print(3+a)}}$
@@ -33,10 +33,13 @@ Prints 23458 */{int a a=1 {while(a!
  int a
  a = 1
  {
+ string g
  while (a != 5) {
  a = 1 + a
  print(a)
+ g="here"
  }
  print(3 + a)
+ print(g)
  }
 }$

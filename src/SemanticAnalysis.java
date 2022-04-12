@@ -160,14 +160,8 @@ public class SemanticAnalysis {
 
     public static ArrayList<Token> ParseIntExpr(ArrayList<Token> tknStream, Tree tree, int scope, boolean valid, String from) {
         prnt("parseIntExpression()","DEBUG");
-        //tree.addNode(tknStream.get(0), "branch", "IntExpression");//Each new IntExpression is a branch
-        //1 + a
         Token next = tknStream.get(0);
         String type = next.getTknType();
-        // System.out.println(next.getCharacter()+"----");
-        // System.out.println(next.getNumber());
-        // System.out.println(type);
-
         if(type.equals("NUM")){
             boolean exists=false;
             int sync = 1;
@@ -175,13 +169,10 @@ public class SemanticAnalysis {
             if(from.equals("PrintStmt")){
                 count=-1;
             }
-            //System.out.println(tknStream.get(sync).getCharacter());
             while(tknStream.get(sync).getTknType().equals("Addition")){
                 count++;
                 exists=true;
-                //System.out.println(sync);
                 tree.addNode(tknStream.get(sync), "branch", tknStream.get(sync).getCharacter(),scope);
-                //System.out.println(tknStream.get(1).getCharacter());
                 
                 if(sync==1){
                     if(tknStream.get(0).getTknType().equals("ID")){
@@ -192,8 +183,6 @@ public class SemanticAnalysis {
                    Match("NUM", tknStream, tree, scope, valid); 
                 }
                 Match("+", tknStream, tree, scope, valid);
-                //System.out.println("TYTY: "+tknStream.get(0).getTknType());
-                //tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getCharacter()));
                 if(tknStream.get(0).getTknType().equals("ID")){
                     tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getCharacter()),scope);
                     Match("ID", tknStream, tree, scope, valid);
@@ -210,11 +199,8 @@ public class SemanticAnalysis {
                 }
             }
             if(exists==false){
-                //System.out.println("BFR"+tknStream.get(0).getCharacter());
                 tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getNumber()), scope);
                 Match("NUM", tknStream, tree, scope, valid);
-                //
-                //System.out.println(tknStream.get(0).getCharacter());
             }
             if(from.equals("Assignment")){
                 tree.moveUp("ASSN");
@@ -223,25 +209,9 @@ public class SemanticAnalysis {
                 tree.moveUp("Addition");
             }
         }
-
-        // if (type.equals("NUM")) {// Match Digit (Num)
-        //     tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getNumber()));
-        //     Match("NUM", tknStream, tree, valid);
-        //     next = tknStream.get(0);
-        //     type = next.getTknType();
-        //     System.out.println(String.valueOf(tknStream.get(0).getCharacter()));
-        //     if (tknStream.size() > 1 && type.equals("Addition")) {// If next is +
-        //         tree.addNode(tknStream.get(0), "branch", tknStream.get(0).getCharacter());
-        //         Match("+", tknStream, tree, valid);// Match(+)
-        //         ParseExpression(tknStream, tree, valid,"IntExpr"); // ParseExpr
-        //     } else {
-        //         // else do nothing (epsilon)
-        //     }
-        // }
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE INT EXPRESSION","ERROR");
         }
-        //tree.moveUp("INTEXPR");
         return tknStream;
     }
 
@@ -249,10 +219,8 @@ public class SemanticAnalysis {
         prnt("parseStringExpression()","DEBUG");
         //tree.addNode(tknStream.get(0), "branch", "StringExpression");//Each new StringExpression is a branch
         Match("BeginningQuote", tknStream, tree, scope, valid);
-        //System.out.println(from+" T "+tknStream.get(0).getCharacter());
         ParseCharList(tknStream, tree, scope, valid, from);
         Match("EndQuote", tknStream, tree, scope, valid);
-        //System.out.println(from+" T "+tknStream.get(0).getCharacter());
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE STRING EXPRESSION","ERROR");
         }
@@ -267,7 +235,6 @@ public class SemanticAnalysis {
         Match("(", tknStream, tree, scope, valid);
         ParseExpression(tknStream, tree, scope, valid,"PrintStmt");
         Match(")", tknStream, tree, scope, valid);
-        //System.out.println(" P "+tknStream.get(0).getCharacter());
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE PRINT STATEMENT","ERROR");
         }
@@ -292,10 +259,8 @@ public class SemanticAnalysis {
         String type = next.getTknType();
         if (type.equals("LeftParen")) {
             Match("(", tknStream, tree,scope, valid);
-            //System.out.println("AFTER PAREN"+tknStream.get(0).getCharacter());
             int inc=0;
             while(!(tknStream.get(inc).getTknType().equals("Inequality")||tknStream.get(inc).getTknType().equals("Equality"))){
-                //System.out.println(tknStream.get(inc).getTknType()+" "+tknStream.get(inc).getCharacter());
                 inc++;
                 if(tknStream.get(inc).getTknType().equals("NUM")){
                     //skip
@@ -303,17 +268,10 @@ public class SemanticAnalysis {
                     tree.addNode(tknStream.get(inc), "branch",tknStream.get(inc).getCharacter(), scope);
                 }
             }
-            System.out.println("HEAT--"+tknStream.get(inc).getTknType());
-            System.out.println(inc);
-            System.out.println(tknStream.get(0).getTknType()+" "+tknStream.get(0).getCharacter());
-            System.out.println(tknStream.get(1).getTknType());
-            System.out.println(tknStream.get(2).getTknType());
             tknStream.remove(inc);
             ParseExpression(tknStream, tree,scope, valid,"ParseBool1");
-            //ParseBoolOp(tknStream, tree,scope, valid);
             ParseExpression(tknStream, tree,scope, valid,"ParseBool");
             Match(")", tknStream, tree,scope, valid);
-            //System.out.println(tknStream.get(0).getCharacter());
             if(from.equals("WhileStmt")){
 
             }else{
@@ -344,16 +302,6 @@ public class SemanticAnalysis {
         prnt("parseIfStatement()","DEBUG");
         tree.addNode(tknStream.get(0), "branch", "IfStatement",scope);//Each new IfStatement is a branch
         Match("if", tknStream, tree, scope, valid);
-        // String type = tknStream.get(0).getTknType();
-        // int inc=0;
-        // while(!(type.equals("Equality")||type.equals("Inequality"))){
-        //     type=tknStream.get(inc).getTknType();
-        //     //System.out.println(type);
-        //     inc++;
-        // }
-        // tree.addNode(tknStream.get(inc-1), "branch", String.valueOf(tknStream.get(inc-1).getCharacter()),scope);
-        // System.out.println(tknStream.get(inc-1).getTknType());
-        // System.out.println(tknStream.get(0).getTknType());
         ParseBooleanExpression(tknStream, tree, scope, valid,from);
         ParseBlock(tknStream, tree, scope, valid);
         //tree.moveUp("IFSTMT");
@@ -388,8 +336,7 @@ public class SemanticAnalysis {
             Match("CHAR", tknStream, tree, scope, valid);
             current = tknStream.get(0);
         }
-        //System.out.println("ADDED: "+full);
-        tree.addNode(tknStream.get(0), "leaf",'"'+full+'"',scope);//Each new CharList is a leaf
+        tree.addNode(tknStream.get(0), "leaf",full,scope);//Each new CharList is a leaf
         if(from.equals("BoolOp")||from.equals("PrintStmt")){
 
         }else{
@@ -486,9 +433,6 @@ public class SemanticAnalysis {
         if (tknStream.size() > 1) {
             Token temp = tknStream.get(0);
             tknStream.remove(temp);
-            for(int i=0; i<tknStream.size(); i++){
-                //System.out.println(tknStream.get(i).getCharacter());
-            }
         } else {
             //System.out.println("Ended");
         }
@@ -554,25 +498,10 @@ public class SemanticAnalysis {
     }
     public static ScopeTree prntTree(Node node, int indent, int currentscope,int tracker, ScopeTree st){
         currentscope = node.getScope();
-        //System.out.println(currentscope);
-        ScopeTree p = new ScopeTree();
-        p = st;
-        //System.out.println("IN SCOPE: "+currentscope);
-        // while(p.current.Parent!=null){
-        //     HashMap<String,SymbolObj> map = p.current.getMap();
-        //     for(String s: map.keySet()){
-        //         System.out.println(s);
-        //     } 
-        //     p.current = p.current.Parent;
-        // }
-        //System.out.println(currentscope+ " "+node.getName(node));
-        //System.out.println("COMPARE:"+st.current.scope+" "+currentscope);
-        
         while(st.current.scope > currentscope){
             st.moveUp("Adjust");
         }
         HashMap<String,SymbolObj> hm = st.current.getMap();
-        //System.out.println(currentscope);
         String spacing = "";
         for(int i=0;i<indent; i++){
             spacing+="-";
@@ -584,18 +513,15 @@ public class SemanticAnalysis {
                 Node type=node.children.get(0);
                 Node id = node.children.get(1);
                 String idName = id.getName(id);
-                //System.out.println("THTHTHTTH"+st.current.scope);
                 hm = st.current.getMap();
                 if(hm.containsKey(idName)){
                     //Do errors, Redeclaring an existing variable
-                    //System.out.println("__ERROR__ Variable already Declared: "+idName);
                     addErrorMsg(hm,node.associated,"ERROR: Var: "+idName+" is already Defined in scope: "+node.getScope());
                 }else{
                     SymbolObj obj = new SymbolObj(type.associated.getTknType(), false, false,currentscope);//All values we want to associate with an ID
                     obj.associated = node.associated;
                     hm.put(idName,obj); 
                     st.current.hashmap = hm;
-                    //System.out.println("Added: "+idName+" Of type: "+obj.getType());
                 }
             }else if(node.name.equals("Block")){
                 HashMap<String,SymbolObj> tmp = new HashMap<String, SymbolObj>();
@@ -609,10 +535,6 @@ public class SemanticAnalysis {
                 if(hm.containsKey(beingassigned.getName(beingassigned))){
                     hm.get(beingassigned.getName(beingassigned)).init = true;
                     String type =hm.get(beingassigned.getName(beingassigned)).getType();
-                    // System.out.println("MUST MATCH: "+type);
-                    // System.out.println(beingassigned.getName(beingassigned));
-                    // System.out.println(type);
-                    // System.out.println(next.getName(next));
                     int inc=0;
                     boolean founderr = false;
                     String compType = next.associated.getTknType();
@@ -668,7 +590,6 @@ public class SemanticAnalysis {
                     }else if(compType.equals("Equality")||compType.equals("Inequality")){
                         //Skip
                     }else{
-                        //System.out.println("WHAT IS THIS"+compType);
                         String filler = compType;
                         if(filler.equals("EndQuote")){
                             filler="string";
@@ -695,15 +616,11 @@ public class SemanticAnalysis {
                     while(inc < next.children.size()&&founderr==false){
                         Node current = next.children.get(inc);
                         String chr = current.getName(current);
-                        //System.out.println(next.children.size());
-                        System.out.println("TYPE:"+current.associated.getTknType());
                         if(current.associated.getTknType().equals("NUM")&&type.equals("int")){
-                            //System.out.println("VALID");
                             if(hm.containsKey(chr)){
                                 hm.get(chr).used = true; 
                             }
                         }else if(current.associated.getTknType().equals("CHAR")&&type.equals("string")){
-                            //System.out.println("VALID");
                             if(hm.containsKey(chr)){
                                 hm.get(chr).used = true; 
                             }
@@ -716,17 +633,11 @@ public class SemanticAnalysis {
                             //Skip this case
                         }else if(current.associated.getTknType().equals("ID")){
                             String ret="NDF";
-                            System.out.println("DEF REF: "+ret);
                             if(hm.containsKey(current.associated.getCharacter())){
-                                System.out.println(ret);
                                 ret =hm.get(current.associated.getCharacter()).getType();
-                                System.out.println("2RET"+ret);
                             }else if(checkPrevScope(st.current, current.associated.getCharacter(),false)){
-                                System.out.println("3RET"+ret);
                                 ret = getPrevType(st.current,current.associated.getCharacter(),"used");
-                                System.out.println("4RET"+ret);
                             }
-                            System.out.println("5RET"+ret);
                             if(ret.equals(type)){
                                 //Valid
                             }else{
@@ -752,7 +663,6 @@ public class SemanticAnalysis {
                                 }
                                 addErrorMsg(hm,current.associated,"FAILED TO MATCH TYPE: "+tmp+" TYPE: "+type+" On line: "+current.associated.getLinenumber());
                             }
-                            //System.out.println("IN ELSE: "+current.associated.getTknType()+" TYPE: "+type);
                         }
                         inc++;
                         if(current.children.size()>0){
@@ -761,18 +671,10 @@ public class SemanticAnalysis {
                         }
                     }
                 }else{
-                    System.out.println("CHECKING::: "+node.name);
-                    System.out.println(beingassigned.name);
-                    System.out.println(next.name);
-                    System.out.println(currentscope+ " "+st.current.scope);
-                    System.out.println(st.current.children.size());
                     if(checkPrevScope(st.current,beingassigned.name,false)){
                         getPrevType(st.current,beingassigned.name,"init");
                     }else{
-                        //System.out.println("NO"+st.current.scope);
-                        //System.out.println(st.current.children.size());
                         for(int i=0; i<st.current.children.size(); i++){
-                            //System.out.println("SCOPE:"+st.current.children.get(i).scope);
                             if(st.current.children.get(i).scope==currentscope){
                                 HashMap<String,SymbolObj> map = st.current.children.get(i).getMap();
                                 if(map.containsKey(beingassigned.name)){
@@ -783,9 +685,6 @@ public class SemanticAnalysis {
                             }
                         }
                         if(st.current.children.size()==0){
-                            System.out.println("SCCOP"+st.current.scope);
-                            System.out.println(beingassigned.name);
-                            System.out.println(st.current.children.size());
                             if(hm.containsKey(beingassigned.name)){
                                 getPrevType(st.current,beingassigned.name,"init");
                             }else{
@@ -796,35 +695,23 @@ public class SemanticAnalysis {
                                 }
                             }
                         }
-                        //System.out.println(currentscope);
-                        //addErrorMsg(hm, node.associated,node.name+":1 Has not been declared");
                     }   
-                    
-                }
-            }else if(node.name.equals("PrintStatement")){
-                if(node.children.size()>1){
-
-                }else{
-                    if(node.children.size()==1){
-                       Node current = node.children.get(0); 
-                       if(hm.containsKey(current.getName(current))){
-                           hm.get(current.getName(current)).used = true;
-                       }else{
-                           checkPrevScope(st.current,current.getName(current),false);
-                       }
-                    }else{
-                        //Empty Print Statement
-                    }
-                    
                 }
             }else if(node.name.equals("!=")||node.name.equals("==")){
-                
-            }else if(node.name.equals("IfStatement")||node.name.equals("WhileStatement")){
-                //System.out.println(node.children.size());
-                Node child = node.children.get(0);
-                for(int i=0; i<child.children.size(); i++){
-                    System.out.println(child.children.get(i).name);
+                for(int i=0; i<node.children.size(); i++){
+                    if(node.children.get(i).associated.getTknType().equals("ID")){
+                        hm = st.current.getMap();
+                        if(hm.containsKey(node.children.get(i).name)){
+                            hm.get(node.children.get(i).name).used = true;
+                        }else{
+                            if(checkPrevScope(st.current,node.children.get(i).name,false)){
+                                getPrevType(st.current,node.children.get(i).name,"used");
+                            }
+                        }
+                    }
                 }
+            }else if(node.name.equals("IfStatement")||node.name.equals("WhileStatement")){
+                Node child = node.children.get(0);
                 if(child.children.size()>1){
                     Node first = child.children.get(0);
                     Node second = child.children.get(1);
@@ -841,17 +728,11 @@ public class SemanticAnalysis {
                     String secondName = second.name;
                     String firstType = "undeclared Var";
                     String secondType ="undeclared Var";
-                    System.out.println("DEF: "+firstType);
                     if(firstName.matches(IDregex)){
-                        System.out.println("1REF:"+firstType);
                         if(hm.containsKey(firstName)){
-                            System.out.println("2REF:"+firstType);
                             firstType = hm.get(firstName).type;
-                            System.out.println("3REF:"+firstType);
                         }else if(checkPrevScope(st.current,firstName, false)){
-                            System.out.println("4REF:"+firstType);
                             firstType = getPrevType(st.current,firstName,"used");
-                            System.out.println("5REF:"+firstType);
                         }
                     }
                     if(secondName.matches(IDregex)){
@@ -861,9 +742,6 @@ public class SemanticAnalysis {
                             secondType = getPrevType(st.current,secondName,"used");
                         }
                     }
-                    System.out.println(firstName+" "+firstType);
-                    System.out.println(secondName+" "+secondType);
-                    System.out.println();
                     if(firstName.equals("true")||firstName.equals("false")){
                         firstType = "boolean";
                     }else if(firstName.matches(NUMregex)){
@@ -883,9 +761,6 @@ public class SemanticAnalysis {
                     }else if(secondType.equals("INT_TYPE")){
                         secondType = "int";
                     }
-                    System.out.println("FIRSTNAME: "+firstName+" "+firstType);
-                    System.out.println("SECONDNAME: "+secondName+" "+secondType);
-                    System.out.println();
                     if(firstType.equals(secondType)){
                         //This is valid
                     }else{
@@ -904,48 +779,16 @@ public class SemanticAnalysis {
             spacing+="[" + node.name + "] ";
             String regex = "[a-z]";
             if(node.name.matches(regex)){
-                System.out.println("FOUND HERE: "+node.name);
-                getPrevType(st.current,node.name,"used");
                 if(node.Parent.name.equals("Var Decl")){
                     //Ignore as this is from the declaration
                 }else if(node.Parent.name.equals("Assignment")){
                     Node first = node.Parent.children.get(0);
-                    //Node second = node.Parent.children.get(1);
-                    System.out.println("SIZE OF ASSN:"+node.Parent.children.size());
-                    if(hm.containsKey(node.name)){
-                        if(hm.get(node.name).getScope()>currentscope){
-                            //The defined scope is unacessable from the current scope
-                            hm = addErrorMsg(hm,node.associated,"SCOPE ERROR: "+node.name+" Was defined at scope: "+hm.get(node.name).getScope()+" Cannot access it in the scope: "+currentscope);
-                        }else{
-                            if(node.name.equals(first.name)){
-                                hm.get(node.name).init = true;
-                            }else{
-                                hm.get(node.name).used = true;
-                            }
-                        }
-                        //System.out.println(node.name+": Has been used");
+                    String firstName = first.getName(first);
+                    if(findVar(st.root,node.name,st.current.scope,firstName,false)){
                     }else{
-                        if(checkPrevScope(st.current,node.name,false)){
-
-                        }else{
-                            // System.out.println("NO"+st.current.scope);
-                            // System.out.println(st.current.children.size());
-                            for(int i=0; i<st.current.children.size(); i++){
-                                //System.out.println("SCOPE:"+st.current.children.get(i).scope);
-                                if(st.current.children.get(i).scope==currentscope){
-                                    HashMap<String,SymbolObj> map = st.current.children.get(i).getMap();
-                                    if(map.containsKey(node.name)){
-
-                                    }else{
-                                        addErrorMsg(hm, node.associated,node.name+": Has not been declared On line: "+node.associated.getLinenumber());
-                                    }
-                                }
-                            }
-                            //System.out.println(currentscope);
-                            //addErrorMsg(hm, node.associated,node.name+":1 Has not been declared");
-                        }                        
+                        addErrorMsg(hm, node.associated,node.name+": Has not been declared On line: "+node.associated.getLinenumber());
                     }
-                }else if(node.Parent.name.equals("WhileStatement")||node.Parent.name.equals("IfStatement")){
+                }else if(node.Parent.name.equals("WhileStatement")||node.Parent.name.equals("IfStatement")||node.Parent.name.equals("PrintStatement")||node.Parent.name.equals("Assignment")){
                     if(hm.containsKey(node.name)){
                         if(hm.get(node.name).getScope()>currentscope){
                             //The defined scope is unacessable from the current scope
@@ -954,15 +797,11 @@ public class SemanticAnalysis {
                             hm.get(node.name).used = true;
                             getPrevType(st.current,node.name,"used");
                         }
-                        //System.out.println(node.name+": Has been used");
                     }else{
                         if(checkPrevScope(st.current,node.name,false)){
                             getPrevType(st.current,node.name,"used");
                         }else{
-                            // System.out.println("NO"+st.current.scope);
-                            // System.out.println(st.current.children.size());
                             for(int i=0; i<st.current.children.size(); i++){
-                                //System.out.println("SCOPE:"+st.current.children.get(i).scope);
                                 if(st.current.children.get(i).scope==currentscope){
                                     HashMap<String,SymbolObj> map = st.current.children.get(i).getMap();
                                     if(map.containsKey(node.name)){
@@ -972,8 +811,6 @@ public class SemanticAnalysis {
                                     }
                                 }
                             }
-                            //System.out.println(currentscope);
-                            //addErrorMsg(hm, node.associated,node.name+":1 Has not been declared");
                         }                        
                     }
                 }
@@ -982,19 +819,56 @@ public class SemanticAnalysis {
         }
         return st;
     }
-    
+    public static boolean findVar(ScopeNode current, String val,int scope,String firstName, boolean found){
+        if(current.children.size() > 0){//Branches have children, leaf nodes do not
+            //spacing+="<" + node.name + ">";
+            HashMap<String,SymbolObj> hm = current.getMap();
+            for (String key: hm.keySet()) {
+                String type = hm.get(key).getType();
+                if(key.equals(val)&&current.scope<=scope){
+                    found = true;
+                    if(key.equals(firstName)){
+                        hm.get(key).init = true;
+                    }else{
+                        hm.get(key).used = true;
+                    }
+                }
+            }
+            for(int j=0; j<current.children.size(); j++){
+                found =findVar(current.children.get(j),val,scope,firstName,found);//We add one to create separation for its child nodes
+            }
+        }else{
+            HashMap<String,SymbolObj> hm = current.getMap();
+            for (String key: hm.keySet()) {
+                String type = hm.get(key).getType();
+                if(key.equals(val)&&current.scope<=scope){
+                    found = true;
+                    if(key.equals(firstName)){
+                        hm.get(key).init = true;
+                    }else{
+                        hm.get(key).used = true;
+                    }
+                }
+            }
+        }
+        return found;
+    }
     public static void prntTable(ScopeNode current){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
             //spacing+="<" + node.name + ">";
-            //System.out.println(spacing);//This line prints the branches
             HashMap<String,SymbolObj> hm = current.getMap();
             for (String key: hm.keySet()) {
                 String type = hm.get(key).getType();
                 if(type.equals("boolean")){//Shorten to fit inside the tab for symbol table
                     type = "bool";
+                }else if(type.equals("INT_TYPE")){
+                    type = "int";
+                }else if(type.equals("BOOL_TYPE")){
+                    type = "bool";
+                }else if(type.equals("STR_TYPE")){
+                    type = "string";
                 }
                 System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
-                //System.out.println("value : " + hm.get(key).getType());
             }
             for(int j=0; j<current.children.size(); j++){
                 prntTable(current.children.get(j));//We add one to create separation for its child nodes
@@ -1005,16 +879,19 @@ public class SemanticAnalysis {
                 String type = hm.get(key).getType();
                 if(type.equals("boolean")){//Shorten to fit inside the tab for symbol table
                     type = "bool";
+                }else if(type.equals("INT_TYPE")){
+                    type = "int";
+                }else if(type.equals("BOOL_TYPE")){
+                    type = "bool";
+                }else if(type.equals("STR_TYPE")){
+                    type = "string";
                 }
                 System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
-                //System.out.println("value : " + hm.get(key).getType());
             }
         }
     }
     public static void prntWarnings(ScopeNode current){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
-            //spacing+="<" + node.name + ">";
-            //System.out.println(spacing);//This line prints the branches
             HashMap<String,SymbolObj> hm = current.getMap();
             for(String key: hm.keySet()){
                 boolean init = hm.get(key).getInit();
@@ -1047,8 +924,6 @@ public class SemanticAnalysis {
     }
     public static boolean prntErr(ScopeNode current, boolean founderr){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
-            //spacing+="<" + node.name + ">";
-            //System.out.println(spacing);//This line prints the branches
             HashMap<String,SymbolObj> hm = current.getMap();
             if(hm.containsKey("__ERROR__")){
                 founderr = true;
@@ -1075,21 +950,12 @@ public class SemanticAnalysis {
     public static String getPrevType(ScopeNode current, String key,String from){
         String prevtype="";
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
-            //spacing+="<" + node.name + ">";
-            //System.out.println(spacing);//This line prints the branches
-            System.out.println(current.scope);
-            
             HashMap<String,SymbolObj> hm = current.getMap();
-            System.out.println("FOR THE SCOPE: "+current.scope+" THE KEYS PRESENT ARE: ");
-            System.out.println("SEARCHING FOR: "+key);
             for(String h: hm.keySet()){
-                System.out.println("ITEM:"+h);
-                System.out.println("TYPE OF "+h+" TYPE: "+hm.get(h).getType());
                 if(h.equals(key)){
-                    System.out.println("HERE");
                     prevtype = hm.get(h).getType();
                     if(from.equals("init")){
-                        hm.get(h).used = true;
+                        hm.get(h).init = true;
                     }else{
                         hm.get(h).used = true; 
                     }
@@ -1097,7 +963,6 @@ public class SemanticAnalysis {
                     return prevtype;
                 }
             }
-            System.out.println("END SCOPE: "+current.scope);
             if(hm.containsKey(key)){
                 prevtype = hm.get(key).getType();
                 if(from.equals("init")){
@@ -1125,23 +990,39 @@ public class SemanticAnalysis {
     }
     public static boolean checkPrevScope(ScopeNode current, String key,boolean found){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
-            //spacing+="<" + node.name + ">";
-            //System.out.println(spacing);//This line prints the branches
             HashMap<String,SymbolObj> hm = current.getMap();
-            // for(String k: hm.keySet()){
-            //     System.out.println(k);
-            // }
-            if(hm.containsKey(key)){
-                found = true;
+            for(String k: hm.keySet()){
+                if(k.equals(key)){
+                    found=true;
+                }
             }
             for(int j=0; j<current.children.size(); j++){
                 found =checkPrevScope(current.children.get(j),key, found);//We add one to create separation for its child nodes
             }
         }else{
             HashMap<String,SymbolObj> hm = current.getMap();
-            if(hm.containsKey(key)){
-                found = true;
+            for(String k: hm.keySet()){
+                if(k.equals(key)){
+                    found=true;
+                }
             }
+        }
+        return found;
+    }
+    public static boolean chkprev(ScopeNode current, String key, boolean found, String type){
+        while(current.Parent!=null){
+            HashMap<String,SymbolObj> hm = current.getMap();
+            for(String k: hm.keySet()){
+                if(k.equals(key)){
+                    found=true;
+                    if(type.equals("init")){
+                        hm.get(k).init = true;
+                    }else if(type.equals("used")){
+                        hm.get(k).used = true;
+                    }
+                }
+            }
+            current = current.Parent;
         }
         return found;
     }
