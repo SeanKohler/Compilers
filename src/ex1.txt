@@ -1,10 +1,2 @@
-/* Variables being used but not declared first */
-{
-int z
-int a
-a=2
-while(a==1){
-    z=1
-}
-print(z)
-}$
+/* This is a simple program with no operations */
+{}$

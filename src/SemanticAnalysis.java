@@ -238,7 +238,7 @@ public class SemanticAnalysis {
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE PRINT STATEMENT","ERROR");
         }
-        tree.moveUp("PRNTSTMT");
+        //tree.moveUp("PRNTSTMT");
         return tknStream;
     }
 
@@ -638,10 +638,24 @@ public class SemanticAnalysis {
                             }else if(checkPrevScope(st.current, current.associated.getCharacter(),false)){
                                 ret = getPrevType(st.current,current.associated.getCharacter(),"used");
                             }
+                            if(ret.equals("INT_TYPE")){
+                                ret = "int";
+                            }else if(ret.equals("STR_TYPE")){
+                                ret = "string";
+                            }else if(ret.equals("BOOL_TYPE")||ret.equals("BOOL_T")||ret.equals("BOOL_F")){
+                                ret = "boolean";
+                            }
+                            if(type.equals("STR_TYPE")){
+                                type="string";
+                            }else if(type.equals("BOOL_TYPE")||type.equals("BOOL_T")||type.equals("BOOL_F")){
+                                type = "boolean";
+                            }else if(type.equals("INT_TYPE")){
+                                type = "int";
+                            }
                             if(ret.equals(type)){
                                 //Valid
                             }else{
-                                addErrorMsg(hm,current.associated,"5Cannot associate type: "+ret+" with type: "+type+" On line: "+current.associated.getLinenumber());
+                                addErrorMsg(hm,current.associated,"Cannot associate type: "+ret+" with type: "+type+" On line: "+current.associated.getLinenumber());
                             }
                         }else if(current.associated.getTknType().equals("Equality")){
 
@@ -750,6 +764,8 @@ public class SemanticAnalysis {
                         firstType = "string";
                     }else if(firstType.equals("INT_TYPE")){
                         firstType = "int";
+                    }else if(firstType.equals("BOOL_TYPE")||firstType.equals("BOOL_T")||firstType.equals("BOOL_F")){
+                        firstType = "boolean";
                     }
                     
                     if(secondName.equals("true")||secondName.equals("false")){
@@ -760,10 +776,13 @@ public class SemanticAnalysis {
                         secondType = "string";
                     }else if(secondType.equals("INT_TYPE")){
                         secondType = "int";
+                    }else if(secondType.equals("BOOL_TYPE")||secondType.equals("BOOL_T")||secondType.equals("BOOL_F")){
+                        secondType = "boolean";
                     }
                     if(firstType.equals(secondType)){
                         //This is valid
                     }else{
+                        System.out.println("CANT ASSOC: "+firstType+" W "+secondType);
                         addErrorMsg(hm,first.associated,"Cannot associate type: "+firstType+" with type: "+secondType+" On line: "+first.associated.getLinenumber());
                     }
 
