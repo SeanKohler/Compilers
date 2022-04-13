@@ -686,11 +686,9 @@ public class SemanticAnalysis {
                     }
                 }else{
                     if(findVar(st.root,beingassigned.name,st.current.scope, beingassigned.name,false)){
-                        System.out.println("FOUND: "+beingassigned.name);
                         prntTable(st.root);
                         String type = retType(st.root,beingassigned.name,st.current.scope, beingassigned.name,"");
                         String comptype = next.associated.getTknType();
-                        System.out.println(type+" "+comptype);
                         if(comptype.equals("Addition")){
                             comptype = "int";
                         }else if(comptype.equals("INT_TYPE")||comptype.equals("NUM")){
@@ -709,7 +707,7 @@ public class SemanticAnalysis {
                             type = "string";
                         }
                         if(type.equals(comptype)){
-                            System.out.println("TYPE: "+type+ "EQUALS TYPE: "+comptype);
+                            //Valid
                         }else{
                             addErrorMsg(hm, node.associated,"TYPE: "+type+" Cannot be associated with TYPE: "+comptype+" On line: "+node.associated.getLinenumber());
                         }
@@ -788,7 +786,6 @@ public class SemanticAnalysis {
                     if(firstType.equals(secondType)){
                         //This is valid
                     }else{
-                        System.out.println("CANT ASSOC: "+firstType+" W "+secondType);
                         addErrorMsg(hm,first.associated,"Cannot associate type: "+firstType+" with type: "+secondType+" On line: "+first.associated.getLinenumber());
                     }
 
