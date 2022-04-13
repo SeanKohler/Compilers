@@ -336,7 +336,7 @@ public class SemanticAnalysis {
             Match("CHAR", tknStream, tree, scope, valid);
             current = tknStream.get(0);
         }
-        tree.addNode(tknStream.get(0), "leaf",full,scope);//Each new CharList is a leaf
+        tree.addNode(tknStream.get(0), "leaf",'"'+full+'"',scope);//Each new CharList is a leaf
         if(from.equals("BoolOp")){
 
         }else{
@@ -686,9 +686,11 @@ public class SemanticAnalysis {
                     }
                 }else{
                     if(findVar(st.root,beingassigned.name,st.current.scope, beingassigned.name,false)){
-                        prntTable(st.root);
                         String type = retType(st.root,beingassigned.name,st.current.scope, beingassigned.name,"");
                         String comptype = next.associated.getTknType();
+                        if(comptype.equals("ID")){
+                            comptype = retType(st.root,next.name,st.current.scope,beingassigned.name,"");
+                        }
                         if(comptype.equals("Addition")){
                             comptype = "int";
                         }else if(comptype.equals("INT_TYPE")||comptype.equals("NUM")){
