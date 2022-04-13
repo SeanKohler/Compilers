@@ -144,7 +144,7 @@ public class SemanticAnalysis {
         } else if (type.equals("ID")) {// MatchID
             tree.addNode(tknStream.get(0), "leaf",tknStream.get(0).getCharacter(), scope);
             Match("ID", tknStream, tree,scope, valid);
-            if(from.equals("Assignment")||from.equals("ParseBool")){
+            if(from.equals("Assignment")||from.equals("ParseBool")||from.equals("PrintStmt")){
                 tree.moveUp("ASSN");
             }
         }else{
@@ -337,7 +337,7 @@ public class SemanticAnalysis {
             current = tknStream.get(0);
         }
         tree.addNode(tknStream.get(0), "leaf",full,scope);//Each new CharList is a leaf
-        if(from.equals("BoolOp")||from.equals("PrintStmt")){
+        if(from.equals("BoolOp")){
 
         }else{
            tree.moveUp("CharList"); 
@@ -685,32 +685,38 @@ public class SemanticAnalysis {
                         }
                     }
                 }else{
-                    if(checkPrevScope(st.current,beingassigned.name,false)){
-                        getPrevType(st.current,beingassigned.name,"init");
+                    if(findVar(st.root,beingassigned.name,st.current.scope, beingassigned.name,false)){
+                        System.out.println("FOUND: "+beingassigned.name);
+                        prntTable(st.root);
+                        String type = retType(st.root,beingassigned.name,st.current.scope, beingassigned.name,"");
+                        String comptype = next.associated.getTknType();
+                        System.out.println(type+" "+comptype);
+                        if(comptype.equals("Addition")){
+                            comptype = "int";
+                        }else if(comptype.equals("INT_TYPE")||comptype.equals("NUM")){
+                            comptype = "int";
+                        }else if(comptype.equals("BOOL_T")||comptype.equals("BOOL_F")||comptype.equals("BOOL_TYPE")){
+                            comptype = "boolean";
+                        }else if(comptype.equals("STR_TYPE")||comptype.equals("EndQuote")){
+                            comptype = "string";
+                        }
+
+                        if(type.equals("INT_TYPE")||type.equals("NUM")){
+                            type = "int";
+                        }else if(type.equals("BOOL_T")||type.equals("BOOL_F")||type.equals("BOOL_TYPE")){
+                            type = "boolean";
+                        }else if(type.equals("STR_TYPE")||comptype.equals("EndQuote")){
+                            type = "string";
+                        }
+                        if(type.equals(comptype)){
+                            System.out.println("TYPE: "+type+ "EQUALS TYPE: "+comptype);
+                        }else{
+                            addErrorMsg(hm, node.associated,"TYPE: "+type+" Cannot be associated with TYPE: "+comptype+" On line: "+node.associated.getLinenumber());
+                        }
                     }else{
-                        for(int i=0; i<st.current.children.size(); i++){
-                            if(st.current.children.get(i).scope==currentscope){
-                                HashMap<String,SymbolObj> map = st.current.children.get(i).getMap();
-                                if(map.containsKey(beingassigned.name)){
-                                    getPrevType(st.current,beingassigned.name,"init");
-                                }else{
-                                    addErrorMsg(hm, node.associated,beingassigned.name+": Has not been declared On line: "+node.associated.getLinenumber());
-                                }
-                            }
-                        }
-                        if(st.current.children.size()==0){
-                            if(hm.containsKey(beingassigned.name)){
-                                getPrevType(st.current,beingassigned.name,"init");
-                            }else{
-                                if(checkPrevScope(st.root, beingassigned.name, false)){
-                                    getPrevType(st.current,beingassigned.name,"init");
-                                }else{
-                                   addErrorMsg(hm, node.associated,beingassigned.name+": Has not been declared On line: "+node.associated.getLinenumber()); 
-                                }
-                            }
-                        }
-                    }   
-                }
+                        addErrorMsg(hm, node.associated,beingassigned.name+": Has not been declared On line: "+node.associated.getLinenumber()); 
+                    }
+                }  
             }else if(node.name.equals("!=")||node.name.equals("==")){
                 for(int i=0; i<node.children.size(); i++){
                     if(node.children.get(i).associated.getTknType().equals("ID")){
@@ -807,7 +813,7 @@ public class SemanticAnalysis {
                     }else{
                         addErrorMsg(hm, node.associated,node.name+": Has not been declared On line: "+node.associated.getLinenumber());
                     }
-                }else if(node.Parent.name.equals("WhileStatement")||node.Parent.name.equals("IfStatement")||node.Parent.name.equals("PrintStatement")||node.Parent.name.equals("Assignment")){
+                }else if(node.Parent.name.equals("WhileStatement")||node.Parent.name.equals("IfStatement")||node.Parent.name.equals("Assignment")){
                     if(hm.containsKey(node.name)){
                         if(hm.get(node.name).getScope()>currentscope){
                             //The defined scope is unacessable from the current scope
@@ -832,6 +838,13 @@ public class SemanticAnalysis {
                             }
                         }                        
                     }
+                }else if(node.Parent.name.equals("PrintStatement")){
+                    String name = "DONT MATCH SHOULD BE USED NOT INIT";
+                    int adjScope =st.current.scope;
+                    if(adjScope==0){//For some reason it will think the scope is 0 even though that is not a valid scope
+                        adjScope = 1;
+                    }
+                    findVar(st.root,node.name,adjScope,name, false);
                 }
             }
             System.out.println(spacing);//This line prints the leaf nodes
@@ -871,6 +884,40 @@ public class SemanticAnalysis {
             }
         }
         return found;
+    }
+    public static String retType(ScopeNode current, String val,int scope,String firstName, String type){
+        if(current.children.size() > 0){//Branches have children, leaf nodes do not
+            //spacing+="<" + node.name + ">";
+            HashMap<String,SymbolObj> hm = current.getMap();
+            for (String key: hm.keySet()) {
+                String t = hm.get(key).getType();
+                if(key.equals(val)&&current.scope<=scope){
+                    type = t;
+                    if(key.equals(firstName)){
+                        hm.get(key).init = true;
+                    }else{
+                        hm.get(key).used = true;
+                    }
+                }
+            }
+            for(int j=0; j<current.children.size(); j++){
+                type =retType(current.children.get(j),val,scope,firstName,type);//We add one to create separation for its child nodes
+            }
+        }else{
+            HashMap<String,SymbolObj> hm = current.getMap();
+            for (String key: hm.keySet()) {
+                String t = hm.get(key).getType();
+                if(key.equals(val)&&current.scope<=scope){
+                    type = t;
+                    if(key.equals(firstName)){
+                        hm.get(key).init = true;
+                    }else{
+                        hm.get(key).used = true;
+                    }
+                }
+            }
+        }
+        return type;
     }
     public static void prntTable(ScopeNode current){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not

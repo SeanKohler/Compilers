@@ -1,0 +1,25 @@
+{
+    inta
+    intr
+    string g
+    intc
+    {
+        boolean b
+        print(g)
+        a=1
+        {
+            int b
+            b = 1
+            c = 3
+            a = 1+g
+            {
+                print(a)
+                r=1+a
+                print(c)
+            }
+            print(c)
+            print(b)
+        }
+    }
+    print(r)
+}$
