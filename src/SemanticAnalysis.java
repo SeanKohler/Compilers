@@ -14,6 +14,7 @@ public class SemanticAnalysis {
         st.addScope(hm, 0);
         if (validtest(temp)) {
             prnt("Parse Completed with: 0 Errors","INFO");
+            System.out.println("");
             System.out.println("PRINT AST:");
             st =prntTree(tree.root, 0,1,1, st);
             System.out.println("SEMANTIC ANALYSIS: COMPLETE AST, PRINT ANY ERRORS:");
@@ -718,15 +719,46 @@ public class SemanticAnalysis {
                     }
                 }  
             }else if(node.name.equals("!=")||node.name.equals("==")){
+                ArrayList<String> types = new ArrayList<String>();
                 for(int i=0; i<node.children.size(); i++){
                     if(node.children.get(i).associated.getTknType().equals("ID")){
                         hm = st.current.getMap();
-                        if(hm.containsKey(node.children.get(i).name)){
-                            hm.get(node.children.get(i).name).used = true;
-                        }else{
-                            if(checkPrevScope(st.current,node.children.get(i).name,false)){
-                                getPrevType(st.current,node.children.get(i).name,"used");
+                        if(findVar(st.root,node.children.get(i).name,node.scope,"NOTASSIGNED",false)){
+                            //Valid
+                            String type = retType(st.root,node.children.get(i).name,node.scope,"NOTASSIGNED","");
+                            if(type.equals("INT_TYPE")||type.equals("NUM")){
+                                type = "int";
+                            }else if(type.equals("BOOL_TYPE")||type.equals("BOOL_T")||type.equals("BOOL_F")){
+                                type = "boolean";
+                            }else if(type.equals("STR_TYPE")||type.equals("EndQuote")){
+                                type = "string";
                             }
+                            types.add(type);
+                        }else{
+                            addErrorMsg(hm,node.children.get(i).associated,"Var: "+node.children.get(i).name+" was not defined On line: "+node.associated.getLinenumber());
+                        }
+                    }else{
+                        String type =node.children.get(i).associated.getTknType();
+                        if(type.equals("INT_TYPE")||type.equals("NUM")){
+                            type = "int";
+                        }else if(type.equals("BOOL_TYPE")||type.equals("BOOL_T")||type.equals("BOOL_F")){
+                            type = "boolean";
+                        }else if(type.equals("STR_TYPE")||type.equals("EndQuote")){
+                            type = "string";
+                        }
+                        if(!(type.equals("Inequality")||type.equals("Equality")||type.equals("LeftCurlBrace")||type.equals("Addition"))){
+                            types.add(type);
+                        }
+                    }
+                }
+                if(types.size()>0){
+                    String first = types.get(0);
+                    for(int i=0; i<types.size(); i++){
+                        if(first.equals(types.get(i))){
+                            //This is valid
+                        }else{
+                            //removed because it was throwing the errors twice (somewhere else already does it)
+                            //addErrorMsg(hm,node.children.get(i).associated,"TYPE: "+first+" Cannot associate with TYPE: "+types.get(i)+" On line: "+node.associated.getLinenumber());
                         }
                     }
                 }
@@ -753,6 +785,8 @@ public class SemanticAnalysis {
                             firstType = hm.get(firstName).type;
                         }else if(checkPrevScope(st.current,firstName, false)){
                             firstType = getPrevType(st.current,firstName,"used");
+                        }else if(findVar(st.root,first.name,node.scope,first.name,false)){
+                            firstType=retType(st.root,first.name,node.scope,first.name,"");
                         }
                     }
                     if(secondName.matches(IDregex)){
@@ -760,6 +794,8 @@ public class SemanticAnalysis {
                             secondType = hm.get(secondName).type;
                         }else if(checkPrevScope(st.current,secondName, false)){
                             secondType = getPrevType(st.current,secondName,"used");
+                        }else if(findVar(st.root,second.name,node.scope,second.name,false)){
+                            secondType=retType(st.root,second.name,node.scope,second.name,"");
                         }
                     }
                     if(firstName.equals("true")||firstName.equals("false")){
@@ -772,6 +808,8 @@ public class SemanticAnalysis {
                         firstType = "int";
                     }else if(firstType.equals("BOOL_TYPE")||firstType.equals("BOOL_T")||firstType.equals("BOOL_F")){
                         firstType = "boolean";
+                    }else if(firstType.equals("STR_TYPE")){
+                        firstType = "string";
                     }
                     
                     if(secondName.equals("true")||secondName.equals("false")){
@@ -784,6 +822,8 @@ public class SemanticAnalysis {
                         secondType = "int";
                     }else if(secondType.equals("BOOL_TYPE")||secondType.equals("BOOL_T")||secondType.equals("BOOL_F")){
                         secondType = "boolean";
+                    }else if(secondType.equals("STR_TYPE")){
+                        secondType = "string";
                     }
                     if(firstType.equals(secondType)){
                         //This is valid

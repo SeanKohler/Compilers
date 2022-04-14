@@ -1,5 +1,13 @@
 {
     int a 
     string b
-    a = 3
+    while(b!="str"){
+        print(b)
+        print(a)
+        string g 
+        g= "test"
+        if(b=="test"){
+            print(a)
+        }
+    }
 }$
