@@ -20,6 +20,8 @@
             print(c)
             print(b)
         }
+        b=true
+        print(b)
     }
     print(r)
 }$

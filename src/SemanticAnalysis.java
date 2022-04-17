@@ -883,7 +883,11 @@ public class SemanticAnalysis {
                     if(adjScope==0){//For some reason it will think the scope is 0 even though that is not a valid scope
                         adjScope = 1;
                     }
-                    findVar(st.root,node.name,adjScope,name, false);
+                    if(findVar(st.root,node.name,adjScope,name, false)){
+                        //System.out.println("USED: "+node.name);
+                    }else{
+                        addErrorMsg(hm,node.associated,"Var: "+node.name+" has not been declared On line: "+node.associated.getLinenumber());
+                    }
                 }
             }
             System.out.println(spacing);//This line prints the leaf nodes

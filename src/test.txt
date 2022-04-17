@@ -5,6 +5,7 @@
         print(b)
         print(a)
         string g 
+        a=1
         g= "test"
         if(b=="test"){
             print(a)

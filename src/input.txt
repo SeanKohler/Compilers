@@ -25,7 +25,8 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 {while(a==true){
     b=c}}$$$
 {string s="test"}$
-{int a a=1 while(a==true){
+{int a a=1 while(a==a){
 	int b b=2
 	a=b
 }}$
+{intaa=1print(x)}$

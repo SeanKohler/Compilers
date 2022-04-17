@@ -28,3 +28,28 @@
         print("false")
     }
 }$
+{
+    int a
+    a=1
+    print(a)
+    {
+        int b
+        string g
+        print(a)
+        print(3+a)
+        print(3+b)
+        g = "test"
+        print(g)
+        print("test")
+        string n 
+        n= "h"
+        print(n)
+        print("h")
+        print("c")
+    }
+    int b
+    int c 
+    c=b
+    print(c)
+    print(b)
+}$
