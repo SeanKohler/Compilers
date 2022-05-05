@@ -1,7 +1,7 @@
 public class Tree {
     Node root = null;
     Node current = null;
-
+    ScopeTree tree = null;
     public void addNode(Token tkn, String type, String name, int scope){
         Node n = new Node(tkn, name, scope);//This is the new node we want to add
         if(this.root == null){
@@ -18,6 +18,7 @@ public class Tree {
     }
     public void moveUp(String location){
         this.current = this.current.Parent;
+        System.out.println(location);
     }
     public Node getRoot(Tree t){
         return t.root;

@@ -50,6 +50,18 @@ public class Compiler {
                      * 
                      */ 
                     Tree AST = SemanticAnalysis.Semantic_Analysis(tokenStream, prognum);
+                    Node node = AST.getRoot(AST);
+                    if(node.getName(node).equals("__ERROR__")){
+                        System.out.println("---Do not proceed with Code Gen---");
+                    }else{
+                        System.out.println("---Start Code Gen---");
+                        /*
+                        *
+                        * Code Gen starts here
+                        * - 
+                        */
+                        CodeGen.CodeGen(AST);
+                    }
                     }
                     
 
@@ -81,7 +93,7 @@ public class Compiler {
         }
 
     }
-    public static void retrieveTokens(Node node, int indent){
+    public static void prntTree(Node node, int indent){
         String spacing = "";
         for(int i=0;i<indent; i++){
             spacing+="-";
@@ -90,7 +102,7 @@ public class Compiler {
             spacing+="<" + node.name + ">";
             System.out.println(spacing);//This line prints the branches
             for(int j=0; j<node.children.size(); j++){
-                retrieveTokens(node.children.get(j), indent+1);//We add one to create separation for its child nodes
+                prntTree(node.children.get(j), indent+1);//We add one to create separation for its child nodes
             }
         }else{
             if(node.name.equals("Statement")||node.name.equals("CharList")){//If these have no children, they are the espilon case

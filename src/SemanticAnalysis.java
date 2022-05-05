@@ -25,6 +25,8 @@ public class SemanticAnalysis {
                 System.out.println("Name \t Type \t Scope \t Line");
                 prntTable(st.getRoot(st));
                 prntWarnings(st.getRoot(st));
+            }else{
+                tree.getRoot(tree).name ="__ERROR__";
             }
         } else {
             System.out.println("------------------------");
@@ -33,6 +35,7 @@ public class SemanticAnalysis {
             //prnt("---Parse Errors, Dont create CST---","INFO");
             tree.getRoot(tree).name ="__ERROR__";
         }
+        tree.tree = st;
         return tree;
     }
 
@@ -203,7 +206,7 @@ public class SemanticAnalysis {
                 tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getNumber()), scope);
                 Match("NUM", tknStream, tree, scope, valid);
             }
-            if(from.equals("Assignment")){
+            if(from.equals("Assignment")||from.equals("PrintStmt")){
                 tree.moveUp("ASSN");
             }
             for(int i=0; i<count; i++){
@@ -273,11 +276,7 @@ public class SemanticAnalysis {
             ParseExpression(tknStream, tree,scope, valid,"ParseBool1");
             ParseExpression(tknStream, tree,scope, valid,"ParseBool");
             Match(")", tknStream, tree,scope, valid);
-            if(from.equals("WhileStmt")){
-
-            }else{
-                tree.moveUp("BOOLOP");  
-            }
+            tree.moveUp("BOOLOP");
             
         }else if(type.equals("BOOL_T")){
             tree.addNode(tknStream.get(0), "leaf",tknStream.get(0).getCharacter(), scope);
@@ -305,7 +304,7 @@ public class SemanticAnalysis {
         Match("if", tknStream, tree, scope, valid);
         ParseBooleanExpression(tknStream, tree, scope, valid,from);
         ParseBlock(tknStream, tree, scope, valid);
-        //tree.moveUp("IFSTMT");
+        tree.moveUp("IFSTMT");
         return tknStream;
     }
 
@@ -499,6 +498,7 @@ public class SemanticAnalysis {
     }
     public static ScopeTree prntTree(Node node, int indent, int currentscope,int tracker, ScopeTree st){
         currentscope = node.getScope();
+        //System.out.println(currentscope);
         while(st.current.scope > currentscope){
             st.moveUp("Adjust");
         }
@@ -686,11 +686,11 @@ public class SemanticAnalysis {
                         }
                     }
                 }else{
-                    if(findVar(st.root,beingassigned.name,st.current.scope, beingassigned.name,false)){
-                        String type = retType(st.root,beingassigned.name,st.current.scope, beingassigned.name,"");
+                    if(findVar(st.root,beingassigned.name,currentscope, beingassigned.name,false)){
+                        String type = retType(st.root,beingassigned.name,currentscope, beingassigned.name,"");
                         String comptype = next.associated.getTknType();
                         if(comptype.equals("ID")){
-                            comptype = retType(st.root,next.name,st.current.scope,beingassigned.name,"");
+                            comptype = retType(st.root,next.name,currentscope,beingassigned.name,"");
                         }
                         if(comptype.equals("Addition")){
                             comptype = "int";
@@ -715,6 +715,8 @@ public class SemanticAnalysis {
                             addErrorMsg(hm, node.associated,"TYPE: "+type+" Cannot be associated with TYPE: "+comptype+" On line: "+node.associated.getLinenumber());
                         }
                     }else{
+                        //prntTable(st.root);
+                        //System.out.println(findVar(st.root,beingassigned.name,currentscope,beingassigned.name,false));
                         addErrorMsg(hm, node.associated,beingassigned.name+": Has not been declared On line: "+node.associated.getLinenumber()); 
                     }
                 }  
@@ -848,9 +850,9 @@ public class SemanticAnalysis {
                 }else if(node.Parent.name.equals("Assignment")){
                     Node first = node.Parent.children.get(0);
                     String firstName = first.getName(first);
-                    if(findVar(st.root,node.name,st.current.scope,firstName,false)){
+                    if(findVar(st.root,node.name,currentscope,firstName,false)){
                     }else{
-                        addErrorMsg(hm, node.associated,node.name+": Has not been declared On line: "+node.associated.getLinenumber());
+                        addErrorMsg(hm, node.associated,node.name+":4 Has not been declared On line: "+node.associated.getLinenumber());
                     }
                 }else if(node.Parent.name.equals("WhileStatement")||node.Parent.name.equals("IfStatement")||node.Parent.name.equals("Assignment")){
                     if(hm.containsKey(node.name)){

@@ -28,5 +28,36 @@ ANYTHING ELSE IS INVALID UNLESS INSIDE OF A COMMENT OR STRING
 {int a a=1 while(a==a){
 	int b b=2
 	a=b
-}}$
-{intaa=1print(x)}$
+}
+a=5}$
+{intaa=1print(a)}$
+{
+	inta
+	a=1
+	if(a==1){
+		print(a)
+	}
+	a=2
+}$
+{
+	int a
+	int b
+	string g
+	g="alan"
+	string h
+	h="blackstone"
+	string s
+	s = "sean"
+	string k
+	k="kohler"
+	a=6+1+1+a
+	b=5
+	a=b
+	print(a)
+	print(1)
+	if(1==1){
+		print(a)
+		print(k)
+		print(s)
+	}
+}$
