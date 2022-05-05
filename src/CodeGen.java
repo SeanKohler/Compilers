@@ -15,12 +15,14 @@ public class CodeGen {
         ScopeTree st = AST.tree;
         prntTable(st.getRoot(st));
         tabobj.env = env;
-        prntTree(tabobj,AST.root,0,AST);
+        boolean fromifwhile = false;
+        prntTree(tabobj,AST.root,0,AST, fromifwhile,0);
         System.out.println(env.size());
         tabobj.setEnv("00");//After the last syscall we need to add a 00
         Generate(tabobj,AST);
         tables(tabobj);
         resolveTMP(tabobj);
+        resolveJMP(tabobj);
         fillgap(tabobj);
     }
     public static void prntTable(ScopeNode current){
@@ -68,7 +70,7 @@ public class CodeGen {
         System.out.println();
         return obj;
     }
-    public static TableObj prntTree(TableObj obj,Node node, int indent, Tree AST){
+    public static TableObj prntTree(TableObj obj,Node node, int indent, Tree AST, boolean fromifwhile, int counter){
         System.out.println(node.scope);
         String spacing = "";
         for(int i=0;i<indent; i++){
@@ -83,22 +85,111 @@ public class CodeGen {
             * For each different type of branch, add it to the env
             *
             */
-
+            System.out.println("COUNTER SIZE: "+obj.counter);
             if(node.name.equals("Var Decl")){
                 obj = addVarDecl(obj,node);
+                if(obj.counter>0){
+                    obj.counter-=1;
+                }
+                System.out.println("COUNT: "+obj.counter);
+                if(obj.counter==0&&fromifwhile==true){
+                    fromifwhile=false;
+                    ArrayList<String> env = obj.getEnv();
+                    int inc=0;
+                    while(!env.get(inc).equals("--")){
+                        inc++;
+                    }
+                    HashMap<String,String>jmp = obj.getJumpTable();
+                    for(String key: jmp.keySet()){
+                        System.out.println("JMP: "+key+" "+jmp.get(key));
+                        if(key.equals(obj.curjump)){
+                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
+                            jmp.put(key, String.valueOf(inc));
+                        }
+                    }
+                }
             }else if(node.name.equals("Assignment")){
                 obj = addAssign(obj,node);
+                if(obj.counter>0){
+                    obj.counter-=1;
+                }
+                System.out.println("COUNT: "+obj.counter);
+                if(obj.counter==0&&fromifwhile==true){
+                    fromifwhile=false;
+                    ArrayList<String> env = obj.getEnv();
+                    int inc=0;
+                    while(!env.get(inc).equals("--")){
+                        inc++;
+                    }
+                    HashMap<String,String>jmp = obj.getJumpTable();
+                    for(String key: jmp.keySet()){
+                        System.out.println("JMP: "+key+" "+jmp.get(key));
+                        if(key.equals(obj.curjump)){
+                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
+                            jmp.put(key, String.valueOf(inc));
+                        }
+                    }
+                }
             }else if(node.name.equals("PrintStatement")){
                 obj = addPrint(obj,node, AST);
                 //System.out.println("here");
+                if(obj.counter>0){
+                    obj.counter-=1;
+                }
+                System.out.println("COUNT: "+obj.counter);
+                if(obj.counter==0&&fromifwhile==true){
+                    fromifwhile=false;
+                    ArrayList<String> env = obj.getEnv();
+                    int inc=0;
+                    while(!env.get(inc).equals("--")){
+                        inc++;
+                    }
+                    HashMap<String,String>jmp = obj.getJumpTable();
+                    for(String key: jmp.keySet()){
+                        System.out.println("JMP: "+key+" "+jmp.get(key));
+                        if(key.equals(obj.curjump)){
+                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
+                            jmp.put(key, String.valueOf(inc));
+                        }
+                    }
+                }
             }else if(node.name.equals("IfStatement")){
-                obj = addIf(obj,node);
+                obj = addIf(obj,node, AST);
                 obj.ifscope=node.scope;
                 System.out.println(obj.ifscope);
+
+                if(obj.counter>0){
+                    obj.counter-=1;
+                }
+                if(obj.counter==0&&fromifwhile==true){
+                    fromifwhile=false;
+                    ArrayList<String> env = obj.getEnv();
+                    int inc=0;
+                    while(!env.get(inc).equals("--")){
+                        inc++;
+                    }
+                    HashMap<String,String>jmp = obj.getJumpTable();
+                    for(String key: jmp.keySet()){
+                        System.out.println("JMP: "+key+" "+jmp.get(key));
+                        if(key.equals(obj.curjump)){
+                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
+                            jmp.put(key, String.valueOf(inc));
+                        }
+                    }
+                }
+                fromifwhile = true;
+            }else if(node.name.equals("Block")){
+                if(fromifwhile == true){
+                    for(int i=0; i<node.children.size(); i++){
+                        System.out.println("BLOCK CHILD: "+node.children.get(i).name);
+                        counter++;
+                        obj.counter++;
+                    }
+                }
             }
 
             for(int j=0; j<node.children.size(); j++){
-                obj =prntTree(obj, node.children.get(j), indent+1, AST);//We add one to create separation for its child nodes
+                obj =prntTree(obj, node.children.get(j), indent+1, AST, fromifwhile, counter);//We add one to create separation for its child nodes
             }
         }else{
             if(node.name.equals("Statement")||node.name.equals("CharList")){//If these have no children, they are the espilon case
@@ -120,7 +211,7 @@ public class CodeGen {
             System.out.println(j+" "+jmp.get(j));
         }
     }
-    public static TableObj addIf(TableObj obj, Node ifNode){
+    public static TableObj addIf(TableObj obj, Node ifNode, Tree AST){
         /*
         if(a==b){
 
@@ -163,6 +254,7 @@ public class CodeGen {
                 int size = jmp.size();
                 obj.setJump("J"+size,"XX");
                 obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
             }else if(child.equals("+")){
                 //TODO
             }else if(child2.equals("+")){
@@ -186,6 +278,7 @@ public class CodeGen {
                 int size = jmp.size();
                 obj.setJump("J"+size,"XX");
                 obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
             }else if(child.matches(nums)&&child2.matches(regex)){
                 //The var is a number not a var
                 //Becuase it is a number. We can add the number to the reg and compare the var to it
@@ -205,6 +298,7 @@ public class CodeGen {
                 int size = jmp.size();
                 obj.setJump("J"+size,"XX");
                 obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
             }else if(child.matches(nums)&&child2.matches(nums)){
                 obj.setEnv("A2");//Load a constant
                 obj.setEnv("0"+child);
@@ -232,6 +326,7 @@ public class CodeGen {
                 int size = jmp.size();
                 obj.setJump("J"+size,"XX");
                 obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
             }
             
         }else if(name.equals("true")){
@@ -239,6 +334,16 @@ public class CodeGen {
         }else if(name.equals("false")){
             //TODO
         }
+        // Node blk = new Node(null, name, 0);
+        // for(int i=0; i<ifNode.children.size(); i++){
+        //     System.out.println("CHILDREN: "+ifNode.children.get(i).name);
+        //     if(ifNode.children.get(i).name.equals("Block")){
+        //         blk = ifNode.children.get(i);
+        //     }
+        // }
+        // for(int i=0; i<blk.children.size(); i++){
+        //     System.out.println("BLK CHILD: "+blk.children.get(i).name);
+        // }
         return obj;
     }
     public static TableObj addPrint(TableObj obj, Node printNode, Tree AST){
@@ -415,6 +520,24 @@ public class CodeGen {
         System.out.println();
         for(int i=0; i<env.size(); i++){
             System.out.print(env.get(i)+" ");
+        }
+        return obj;
+    }
+    public static TableObj resolveJMP(TableObj obj){
+        System.out.println();
+        HashMap<String,String> jmp = obj.getJumpTable();
+        ArrayList<String> env = obj.getEnv();
+        for(String key: jmp.keySet()){
+            for(int i=0; i<env.size(); i++){
+                if(env.get(i).equals(key)){
+                    System.out.println("FOUND: "+key+" AT: "+i);
+                    System.out.println("JUMP TO: "+jmp.get(key));
+                    int to = Integer.parseInt(jmp.get(key));
+                    int dist = to-i-1;//We need to subtract an additional 1 because the jump distance assumes we skip the last place
+                    String fin =String.format("%02X", dist);
+                    env.set(i,fin);
+                }
+            }
         }
         return obj;
     }

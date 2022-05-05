@@ -7,6 +7,8 @@ public class TableObj {
     HashMap<String,String> temp = new HashMap<String,String>();
     HashMap<String,String> jump = new HashMap<String,String>();
     int ifscope;
+    String curjump;
+    int counter=0;
     public void setEnv(String opCode){
         boolean foundspot=false;
         for(int i=0; i<env.size(); i++){
@@ -54,7 +56,7 @@ public class TableObj {
         this.temp.put(addr+addr2,var);
     }
     public void setJump(String var, String dist){
-        this.jump.put(dist,var);
+        this.jump.put(var,dist);
     }
     public ArrayList<String> getEnv(){
         return env;
