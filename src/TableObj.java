@@ -9,6 +9,7 @@ public class TableObj {
     int ifscope;
     String curjump;
     int counter=0;
+    String ifaddr="";
     public void setEnv(String opCode){
         boolean foundspot=false;
         for(int i=0; i<env.size(); i++){

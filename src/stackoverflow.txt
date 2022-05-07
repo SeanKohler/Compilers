@@ -1,0 +1,28 @@
+/* Stack Overflow */
+{
+int a
+string b
+int g
+g = 9
+g = 9 + g
+b = "sean"
+a = 1 + 5 + 9 + g
+print(a)
+print(b)
+}$
+{
+    int x 
+    x = 4 + 4
+    if (x == 6+3 ){
+        print(x)
+    }
+}$
+{
+    int a 
+    a = 1 + 5
+    if(6+a==1+2+2+a){
+        print(a)
+        print(9)
+    }
+    print(4)
+}$

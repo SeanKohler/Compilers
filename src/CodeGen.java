@@ -211,6 +211,184 @@ public class CodeGen {
             System.out.println(j+" "+jmp.get(j));
         }
     }
+    public static TableObj plus(TableObj obj, Node plusNode, String varname, String from){
+        System.out.println("PLUS");
+        String regex = "[a-z]";
+        String numregex = "[0-9]";
+        System.out.println(plusNode.children.size());
+        String addr="";
+        String tempnum="";
+        String vaddr="";
+        if(from.equals("ASSN")){
+            addr = lookupAddr(obj, varname, plusNode);
+            tempnum = addr.substring(0,2);//T1
+            vaddr = addr.substring(2,addr.length());//XX
+        }
+        for(int i=0; i<plusNode.children.size(); i++){
+            System.out.println(plusNode.children.get(i).name);
+        }
+        //a+11+1+1+1+1+1
+        if(plusNode.children.size()==3){
+            Node current = plusNode;
+            String child1 = current.children.get(0).name;
+            String child2 = current.children.get(1).name;
+            current = current.children.get(2);
+            //Load the first child and store it in memory
+            //this is only valid if both children are nums... Fix that
+            if(child1.matches(numregex)){
+                obj.setEnv("A9");
+                obj.setEnv("0"+child1);
+            }else if(child1.matches(regex)){
+                obj.setEnv("AD");
+                String varaddr = lookupAddr(obj, child1, current.children.get(0));
+                String n = varaddr.substring(0,2);//T1
+                String ad = varaddr.substring(2,varaddr.length());//XX
+                obj.setEnv(n);
+                obj.setEnv(ad);
+            }
+            
+            obj.setEnv("8D");
+
+            int num =obj.getTempTable().size();
+            if(child1.matches(numregex)){
+                obj.setTemp("0"+child1, "T"+num, "XX");
+            }else if(child1.matches(regex)){
+                obj.setTemp(child1, "T"+num, "XX");
+            }
+            obj.ifaddr = "T"+num+"XX";
+            
+
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //Now load the second child to acc and ADC the mem address of child1
+            if(child2.matches(numregex)){
+                obj.setEnv("A9");
+                obj.setEnv("0"+child2);
+            }else if(child2.matches(regex)){
+                obj.setEnv("AD");
+                String varaddr = lookupAddr(obj, child2, current.children.get(1));
+                String n = varaddr.substring(0,2);//T1
+                String ad = varaddr.substring(2,varaddr.length());//XX
+                obj.setEnv(n);
+                obj.setEnv(ad);
+            }
+            obj.setEnv("6D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //Store the result back in the temp addr
+            obj.setEnv("8D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            System.out.println("()()()()("+current.children.size());
+            while(current.children.size()==2){   
+                System.out.println("()()()()(");             
+                String child = current.children.get(0).name;
+                //Add the child to the acc. Then ADC the temp addr and store it back in the temp addr
+                current = current.children.get(1);
+                if(child.matches(numregex)){
+                    obj.setEnv("A9");
+                    obj.setEnv("0"+child);
+                }else if(child.matches(regex)){
+                    obj.setEnv("AD");
+                    String varaddr = lookupAddr(obj, child, current.children.get(0));
+                    String n = varaddr.substring(0,2);//T1
+                    String ad = varaddr.substring(2,varaddr.length());//XX
+                    obj.setEnv(n);
+                    obj.setEnv(ad);
+                }
+                obj.setEnv("6D");
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                //Store the result back in the temp addr
+                obj.setEnv("8D");
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+            }
+            child1 = current.children.get(0).name;
+            if(child1.matches(numregex)){
+                obj.setEnv("A9");
+                obj.setEnv("0"+child1);
+            }else if(child1.matches(regex)){
+                obj.setEnv("AD");
+                String varaddr = lookupAddr(obj, child1, current.children.get(0));
+                String n = varaddr.substring(0,2);//T1
+                String ad = varaddr.substring(2,varaddr.length());//XX
+                obj.setEnv(n);
+                obj.setEnv(ad);
+            }
+            obj.setEnv("6D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //Store the result back in the temp addr
+            obj.setEnv("8D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //This is the end of the addition
+            //We now store the result of the addition back in the init var
+            //The current result is still in the acc. So we can directly store it in the addr
+            if(from.equals("IF")){
+                //Skip in here
+            }else if(from.equals("ASSN")){//This puts the result of the addition back into the addr of the first var
+                obj.setEnv("8D");
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+            }
+        }else{
+            System.out.println("IN ELSE:::");
+            String child1 = plusNode.children.get(0).name;
+            String child2 = plusNode.children.get(1).name;
+            if(child1.matches(numregex)){
+                obj.setEnv("A9");
+                obj.setEnv("0"+child1);
+            }else if(child1.matches(regex)){
+                obj.setEnv("AD");
+                String varaddr = lookupAddr(obj, child1, plusNode.children.get(0));
+                String n = varaddr.substring(0,2);//T1
+                String ad = varaddr.substring(2,varaddr.length());//XX
+                obj.setEnv(n);
+                obj.setEnv(ad);
+            }
+            obj.setEnv("8D");
+
+            int num =obj.getTempTable().size();
+            if(child1.matches(numregex)){
+                obj.setTemp("0"+child1, "T"+num, "XX");
+            }else if(child1.matches(regex)){
+                obj.setTemp(child1, "T"+num, "XX");
+            }
+            obj.ifaddr = "T"+num+"XX";
+
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //Now load the second child to acc and ADC the mem address of child1
+            if(child2.matches(numregex)){
+                obj.setEnv("A9");
+                obj.setEnv("0"+child2);
+            }else if(child2.matches(regex)){
+                obj.setEnv("AD");
+                String varaddr = lookupAddr(obj, child2, plusNode.children.get(1));
+                String n = varaddr.substring(0,2);//T1
+                String ad = varaddr.substring(2,varaddr.length());//XX
+                obj.setEnv(n);
+                obj.setEnv(ad);
+            }
+            obj.setEnv("6D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            //Store the result back in the temp addr
+            obj.setEnv("8D");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            if(from.equals("IF")){
+                //Skip in here
+            }else if(from.equals("ASSN")){//This puts the result of the addition back into the addr of the first var
+                obj.setEnv("8D");
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+            }
+        }
+        return obj;
+    }
     public static TableObj addIf(TableObj obj, Node ifNode, Tree AST){
         /*
         if(a==b){
@@ -256,9 +434,85 @@ public class CodeGen {
                 obj.setEnv("J"+size);
                 obj.curjump ="J"+size;
             }else if(child.equals("+")){
-                //TODO
+                System.out.println("FIRST CHILD::");
+                plus(obj,ifchild.children.get(0),child,"IF");
+                String firstaddr = obj.ifaddr;
+                System.out.println("IFADDR:::"+firstaddr);
+
+                if(ifchild.children.get(1).name.equals("+")){
+                    plus(obj,ifchild.children.get(1),ifchild.children.get(1).name,"IF");
+                    String secondaddr = obj.ifaddr;
+                    //Now we have the result of the first and second. Add first to X Reg and compare to second addr then jump
+                    //TODO
+                    obj.setEnv("AE");
+                    String f = firstaddr.substring(0,2);//T1
+                    String s = firstaddr.substring(2,firstaddr.length());//XX
+                    obj.setEnv(f);
+                    obj.setEnv(s);
+                    obj.setEnv("EC");
+                    String sc = secondaddr.substring(0,2);//T1
+                    String nd = secondaddr.substring(2,secondaddr.length());//XX
+                    obj.setEnv(sc);
+                    obj.setEnv(nd);
+                    //Now Add the jump
+                    obj.setEnv("D0");
+                    HashMap<String,String> jmp =obj.getJumpTable();
+                    int size = jmp.size();
+                    obj.setJump("J"+size,"XX");
+                    obj.setEnv("J"+size);
+                    obj.curjump ="J"+size;
+                }else{
+                    String c2 = ifchild.children.get(1).name;
+                    if(c2.matches("[0-9]")){
+                        obj.setEnv("A2");
+                        obj.setEnv("0"+c2);
+                    }else if(c2.matches("[a-z]")){
+                        obj.setEnv("AE");
+                        String varaddr = lookupAddr(obj, c2, ifchild.children.get(1));
+                        String n = varaddr.substring(0,2);//T1
+                        String ad = varaddr.substring(2,varaddr.length());//XX
+                        obj.setEnv(n);
+                        obj.setEnv(ad);
+                    }
+                    //Now that we have loaded the second into X reg and compare the first to it
+                    obj.setEnv("EC");
+                    String fr = firstaddr.substring(0,2);//T1
+                    String st = firstaddr.substring(2,firstaddr.length());//XX
+                    obj.setEnv(fr);
+                    obj.setEnv(st);
+                    obj.setEnv("D0");
+                    HashMap<String,String> jmp =obj.getJumpTable();
+                    int size = jmp.size();
+                    obj.setJump("J"+size,"XX");
+                    obj.setEnv("J"+size);
+                    obj.curjump ="J"+size;
+                }
             }else if(child2.equals("+")){
-                //TODO
+                System.out.println("SECOND CHILD::");
+                plus(obj,ifchild.children.get(1),child,"IF");
+                String secondaddr = obj.ifaddr;
+                if(child.matches("[0-9]")){
+                    obj.setEnv("A2");
+                    obj.setEnv("0"+child);
+                }else if(child.matches("[a-z]")){
+                    obj.setEnv("AE");
+                    String varaddr = lookupAddr(obj, child, ifchild.children.get(0));
+                    String n = varaddr.substring(0,2);//T1
+                    String ad = varaddr.substring(2,varaddr.length());//XX
+                    obj.setEnv(n);
+                    obj.setEnv(ad);
+                }
+                obj.setEnv("EC");
+                String fr = secondaddr.substring(0,2);//T1
+                String st = secondaddr.substring(2,secondaddr.length());//XX
+                obj.setEnv(fr);
+                obj.setEnv(st);
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
             }else if(child.matches(regex)&&child2.matches(nums)){
                 //The var is a number not a var
                 //Becuase it is a number. We can add the number to the reg and compare the var to it
@@ -434,7 +688,7 @@ public class CodeGen {
 
 
         if(next.name.equals("+")){
-            //TODO
+            plus(obj,next,beingAssigned.name,"ASSN");
         }else{
             String vars = "[a-z]";
             String nums = "[0-9]";
