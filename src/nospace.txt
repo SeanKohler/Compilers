@@ -1,0 +1,2 @@
+/*test case for most productions with two semantic warnings */{/*int declaration*/
+intaintbstringsbooleanzz=trues="dammitjanet"a=0b=0/*while loop*/while(a!=3){print(a )while(b!=3){print(b)b=1+bif(b==2){/*print statement*/print("dammit janet"/*this will do nothing*/)}}b=0a=1+a}}$

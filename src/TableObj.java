@@ -4,8 +4,10 @@ import java.util.HashMap;
 public class TableObj {
     
     ArrayList<String> env = new ArrayList<String>();
+    ArrayList<String> errors = new ArrayList<String>();
     HashMap<String,String> temp = new HashMap<String,String>();
     HashMap<String,String> jump = new HashMap<String,String>();
+    HashMap<String,String> jumpcount = new HashMap<String,String>();
     int ifscope;
     String curjump;
     int counter=0;
@@ -58,6 +60,13 @@ public class TableObj {
     }
     public void setJump(String var, String dist){
         this.jump.put(var,dist);
+    }
+    public void setJumpCount(String j, int num){
+        String len = String.valueOf(num);
+        if(len.length()==1){
+            len = "0"+len;
+        }
+        this.jumpcount.put(j,len);
     }
     public ArrayList<String> getEnv(){
         return env;

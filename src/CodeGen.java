@@ -20,6 +20,7 @@ public class CodeGen {
         System.out.println(env.size());
         tabobj.setEnv("00");//After the last syscall we need to add a 00
         Generate(tabobj,AST);
+
         tables(tabobj);
         resolveTMP(tabobj);
         resolveJMP(tabobj);
@@ -72,6 +73,7 @@ public class CodeGen {
     }
     public static TableObj prntTree(TableObj obj,Node node, int indent, Tree AST, boolean fromifwhile, int counter){
         System.out.println(node.scope);
+        System.out.println("CURRENT CHILDREN: "+node.children.size());
         String spacing = "";
         for(int i=0;i<indent; i++){
             spacing+="-";
@@ -88,96 +90,43 @@ public class CodeGen {
             System.out.println("COUNTER SIZE: "+obj.counter);
             if(node.name.equals("Var Decl")){
                 obj = addVarDecl(obj,node);
-                if(obj.counter>0){
-                    obj.counter-=1;
-                }
-                System.out.println("COUNT: "+obj.counter);
-                if(obj.counter==0&&fromifwhile==true){
-                    fromifwhile=false;
-                    ArrayList<String> env = obj.getEnv();
-                    int inc=0;
-                    while(!env.get(inc).equals("--")){
-                        inc++;
-                    }
-                    HashMap<String,String>jmp = obj.getJumpTable();
-                    for(String key: jmp.keySet()){
-                        System.out.println("JMP: "+key+" "+jmp.get(key));
-                        if(key.equals(obj.curjump)){
-                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
-                            jmp.put(key, String.valueOf(inc));
-                        }
-                    }
-                }
+                resolveJump(obj);
             }else if(node.name.equals("Assignment")){
                 obj = addAssign(obj,node);
-                if(obj.counter>0){
-                    obj.counter-=1;
-                }
-                System.out.println("COUNT: "+obj.counter);
-                if(obj.counter==0&&fromifwhile==true){
-                    fromifwhile=false;
-                    ArrayList<String> env = obj.getEnv();
-                    int inc=0;
-                    while(!env.get(inc).equals("--")){
-                        inc++;
-                    }
-                    HashMap<String,String>jmp = obj.getJumpTable();
-                    for(String key: jmp.keySet()){
-                        System.out.println("JMP: "+key+" "+jmp.get(key));
-                        if(key.equals(obj.curjump)){
-                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
-                            jmp.put(key, String.valueOf(inc));
-                        }
-                    }
-                }
+                resolveJump(obj);
             }else if(node.name.equals("PrintStatement")){
                 obj = addPrint(obj,node, AST);
                 //System.out.println("here");
-                if(obj.counter>0){
-                    obj.counter-=1;
-                }
-                System.out.println("COUNT: "+obj.counter);
-                if(obj.counter==0&&fromifwhile==true){
-                    fromifwhile=false;
-                    ArrayList<String> env = obj.getEnv();
-                    int inc=0;
-                    while(!env.get(inc).equals("--")){
-                        inc++;
-                    }
-                    HashMap<String,String>jmp = obj.getJumpTable();
-                    for(String key: jmp.keySet()){
-                        System.out.println("JMP: "+key+" "+jmp.get(key));
-                        if(key.equals(obj.curjump)){
-                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
-                            jmp.put(key, String.valueOf(inc));
-                        }
-                    }
-                }
+                resolveJump(obj);
             }else if(node.name.equals("IfStatement")){
+                resolveJump(obj);
                 obj = addIf(obj,node, AST);
                 obj.ifscope=node.scope;
                 System.out.println(obj.ifscope);
-
-                if(obj.counter>0){
-                    obj.counter-=1;
-                }
-                if(obj.counter==0&&fromifwhile==true){
-                    fromifwhile=false;
-                    ArrayList<String> env = obj.getEnv();
-                    int inc=0;
-                    while(!env.get(inc).equals("--")){
-                        inc++;
-                    }
-                    HashMap<String,String>jmp = obj.getJumpTable();
-                    for(String key: jmp.keySet()){
-                        System.out.println("JMP: "+key+" "+jmp.get(key));
-                        if(key.equals(obj.curjump)){
-                            System.out.println("FOUND::"+key+" "+String.valueOf(inc));
-                            jmp.put(key, String.valueOf(inc));
+                System.out.println("IF CHILDREN: ");
+                for(int i=0; i<node.children.size(); i++){
+                    System.out.println(node.children.get(i).name);
+                    if(node.children.get(i).name.equals("Block")){
+                        Node cur = node.children.get(i);
+                        int blockchild=0;
+                        for(int j=0; j<cur.children.size(); j++){
+                            System.out.println("BLK CHILD: "+cur.children.get(j).name);
+                            blockchild++;
                         }
+                        //Now for each existing jump counter we must add to them the children of the new block
+                        HashMap<String,String> jc = obj.jumpcount;
+                        for(String key:jc.keySet()){
+                            int curnum = Integer.parseInt(jc.get(key));
+                            curnum+=blockchild;
+                            obj.jumpcount.put(key,String.valueOf(curnum));
+                        }
+                        //We then add a new jump count for the new if block
+                        obj.setJumpCount(obj.curjump,blockchild);
                     }
                 }
-                fromifwhile = true;
+            }else if(node.name.equals("WhileStatement")){
+                obj = addWhile(obj,node,AST);
+                resolveJump(obj);
             }else if(node.name.equals("Block")){
                 if(fromifwhile == true){
                     for(int i=0; i<node.children.size(); i++){
@@ -387,6 +336,10 @@ public class CodeGen {
                 obj.setEnv(vaddr);
             }
         }
+        return obj;
+    }
+    public static TableObj addWhile(TableObj obj, Node whileNode, Tree AST){
+        System.out.println("IN WHILE:::");
         return obj;
     }
     public static TableObj addIf(TableObj obj, Node ifNode, Tree AST){
@@ -639,16 +592,29 @@ public class CodeGen {
                 //Sys call
                 obj.setEnv("FF");
             }else{
-                //System.out.println("PRINT NUM");
-                //print(1)
-                //For this we load the Y register with a constant being the number we wish to print
-                obj.setEnv("A0");
-                obj.setEnv("0"+printNode.children.get(0).name);
-                //We then load the X register with a 1 so on a sys call it prints the Y reg
-                obj.setEnv("A2");
-                obj.setEnv("01");
-                //Sys call
-                obj.setEnv("FF");
+                String name = printNode.children.get(0).name;
+                if(name.matches("[0-9]")){
+                    //System.out.println("PRINT NUM");
+                    //print(1)
+                    //For this we load the Y register with a constant being the number we wish to print
+                    obj.setEnv("A0");
+                    obj.setEnv("0"+printNode.children.get(0).name);
+                    //We then load the X register with a 1 so on a sys call it prints the Y reg
+                    obj.setEnv("A2");
+                    obj.setEnv("01");
+                    //Sys call
+                    obj.setEnv("FF");
+                }else if(name.contains("\"")){
+                    obj.setEnv("A0");
+                    //Now we need to add the string to the heap
+                    int frontpos = obj.setHeap(name);
+                    String pointer=String.format("%02X", frontpos);
+                    obj.setEnv(pointer);
+                    //Now load a 2 in the X reg to print the 00 terminated string
+                    obj.setEnv("A2");
+                    obj.setEnv("02");
+                    obj.setEnv("FF");
+                }
 
             }
         }else{
@@ -793,6 +759,31 @@ public class CodeGen {
                 }
             }
         }
+        return obj;
+    }
+    public static TableObj resolveJump(TableObj obj){
+        HashMap<String,String> jmp = obj.getJumpTable();
+        for(String key: jmp.keySet()){
+            System.out.println(key+ " "+jmp.get(key));
+        }
+        System.out.println("---------------");
+        HashMap<String,String> jcount = obj.jumpcount;
+        for(String key: jcount.keySet()){
+            System.out.println(key+" "+jcount.get(key));
+            int num = Integer.parseInt(jcount.get(key));
+            num-=1;
+            obj.jumpcount.put(key,String.valueOf(num));
+            if(num==0){
+                int c=0;
+                ArrayList<String> env = obj.getEnv();
+                while(!env.get(c).equals("--")){
+                    c++;
+                }
+                obj.jump.put(key,String.valueOf(c));
+                System.out.println("PUTTING: "+key+" AT: "+c);
+            }
+        }
+        System.out.println("END");
         return obj;
     }
     public static TableObj resolveTMP(TableObj obj){

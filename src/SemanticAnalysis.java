@@ -191,7 +191,11 @@ public class SemanticAnalysis {
                     tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getCharacter()),scope);
                     Match("ID", tknStream, tree, scope, valid);
                 }else if(!tknStream.get(0).getTknType().equals("NUM")){
-                    System.out.println("ERROR: EXPECTED TYPE NUM GOT TYPE: "+tknStream.get(0).getTknType()+" On line: "+tknStream.get(0).getLinenumber());
+                    String format = tknStream.get(0).getTknType();
+                    if(format.equals("BeginningQuote")){
+                        format="STRING";
+                    }
+                    System.out.println("ERROR: EXPECTED TYPE NUM GOT TYPE: "+format+" On line: "+tknStream.get(0).getLinenumber());
                 }else{
                     tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getNumber()),scope);
                     Match("NUM", tknStream, tree, scope, valid); 
@@ -637,7 +641,7 @@ public class SemanticAnalysis {
                             if(hm.containsKey(current.associated.getCharacter())){
                                 ret =hm.get(current.associated.getCharacter()).getType();
                             }else if(checkPrevScope(st.current, current.associated.getCharacter(),false)){
-                                ret = getPrevType(st.current,current.associated.getCharacter(),"used");
+                                ret = getPrevType(st.current,current.associated.getCharacter(),"used","");
                             }
                             if(ret.equals("INT_TYPE")){
                                 ret = "int";
@@ -786,7 +790,7 @@ public class SemanticAnalysis {
                         if(hm.containsKey(firstName)){
                             firstType = hm.get(firstName).type;
                         }else if(checkPrevScope(st.current,firstName, false)){
-                            firstType = getPrevType(st.current,firstName,"used");
+                            firstType = getPrevType(st.current,firstName,"used","");
                         }else if(findVar(st.root,first.name,node.scope,first.name,false)){
                             firstType=retType(st.root,first.name,node.scope,first.name,"");
                         }
@@ -795,7 +799,7 @@ public class SemanticAnalysis {
                         if(hm.containsKey(secondName)){
                             secondType = hm.get(secondName).type;
                         }else if(checkPrevScope(st.current,secondName, false)){
-                            secondType = getPrevType(st.current,secondName,"used");
+                            secondType = getPrevType(st.current,secondName,"used","");
                         }else if(findVar(st.root,second.name,node.scope,second.name,false)){
                             secondType=retType(st.root,second.name,node.scope,second.name,"");
                         }
@@ -861,11 +865,11 @@ public class SemanticAnalysis {
                             hm = addErrorMsg(hm,node.associated,"SCOPE ERROR: "+node.name+" Was defined at scope: "+hm.get(node.name).getScope()+" Cannot access it in the scope: "+currentscope);
                         }else{
                             hm.get(node.name).used = true;
-                            getPrevType(st.current,node.name,"used");
+                            getPrevType(st.current,node.name,"used","");
                         }
                     }else{
                         if(checkPrevScope(st.current,node.name,false)){
-                            getPrevType(st.current,node.name,"used");
+                            getPrevType(st.current,node.name,"used","");
                         }else{
                             for(int i=0; i<st.current.children.size(); i++){
                                 if(st.current.children.get(i).scope==currentscope){
@@ -1058,8 +1062,7 @@ public class SemanticAnalysis {
         }
         return founderr;
     }
-    public static String getPrevType(ScopeNode current, String key,String from){
-        String prevtype="";
+    public static String getPrevType(ScopeNode current, String key,String from,String prevtype){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
             HashMap<String,SymbolObj> hm = current.getMap();
             for(String h: hm.keySet()){
@@ -1083,7 +1086,7 @@ public class SemanticAnalysis {
                 }
             }
             for(int j=0; j<current.children.size(); j++){
-                prevtype =getPrevType(current.children.get(j), key,from);//We add one to create separation for its child nodes
+                prevtype =getPrevType(current.children.get(j), key,from,prevtype);//We add one to create separation for its child nodes
             }
         }else{
             HashMap<String,SymbolObj> hm = current.getMap();
