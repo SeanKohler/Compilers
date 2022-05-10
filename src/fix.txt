@@ -3,10 +3,10 @@
     a=1
     if(a==1){
         print(9)
-        if(a==1){
+        if(a!=1){
             print(9)
             a=5+9
-            if(a==4){
+            if(a!=4){
                 print(9)
                 print(a)
                 a=7

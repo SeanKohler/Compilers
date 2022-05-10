@@ -378,6 +378,9 @@ public class CodeGen {
                 vaddr = addr.substring(2,addr.length());//XX
                 obj.setEnv(tempnum);
                 obj.setEnv(vaddr);
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
                 //Now the z flag will be set to 1 if they are equal.
                 //If the z flag is 0 we need to branch as the if condition was not met
                 obj.setEnv("D0");
@@ -407,6 +410,9 @@ public class CodeGen {
                     String nd = secondaddr.substring(2,secondaddr.length());//XX
                     obj.setEnv(sc);
                     obj.setEnv(nd);
+                    if(name.equals("!=")){
+                        resNE(obj);
+                    }
                     //Now Add the jump
                     obj.setEnv("D0");
                     HashMap<String,String> jmp =obj.getJumpTable();
@@ -433,6 +439,9 @@ public class CodeGen {
                     String st = firstaddr.substring(2,firstaddr.length());//XX
                     obj.setEnv(fr);
                     obj.setEnv(st);
+                    if(name.equals("!=")){
+                        resNE(obj);
+                    }
                     obj.setEnv("D0");
                     HashMap<String,String> jmp =obj.getJumpTable();
                     int size = jmp.size();
@@ -460,6 +469,9 @@ public class CodeGen {
                 String st = secondaddr.substring(2,secondaddr.length());//XX
                 obj.setEnv(fr);
                 obj.setEnv(st);
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
                 obj.setEnv("D0");
                 HashMap<String,String> jmp =obj.getJumpTable();
                 int size = jmp.size();
@@ -480,6 +492,9 @@ public class CodeGen {
                 obj.setEnv(vaddr);
                 //Now the z flag will be set to 1 if they are equal.
                 //If the z flag is 0 we need to branch as the if condition was not met
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
                 obj.setEnv("D0");
                 HashMap<String,String> jmp =obj.getJumpTable();
                 int size = jmp.size();
@@ -500,6 +515,9 @@ public class CodeGen {
                 obj.setEnv(vaddr);
                 //Now the z flag will be set to 1 if they are equal.
                 //If the z flag is 0 we need to branch as the if condition was not met
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
                 obj.setEnv("D0");
                 HashMap<String,String> jmp =obj.getJumpTable();
                 int size = jmp.size();
@@ -528,6 +546,9 @@ public class CodeGen {
                 obj.setEnv(tempnum);
                 obj.setEnv(vaddr);
                 //Now if the z flag was set we can branch
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
                 obj.setEnv("D0");
                 HashMap<String,String> jmp =obj.getJumpTable();
                 int size = jmp.size();
@@ -551,6 +572,38 @@ public class CodeGen {
         // for(int i=0; i<blk.children.size(); i++){
         //     System.out.println("BLK CHILD: "+blk.children.get(i).name);
         // }
+        return obj;
+    }
+    public static TableObj resNE(TableObj obj){
+        System.out.println("ACTUALLY A !=");
+        obj.setEnv("D0");
+        obj.setEnv("0C");//Dist of flipper
+        obj.setEnv("A9");
+        obj.setEnv("00");
+        obj.setEnv("8D");
+        int num =obj.getTempTable().size();
+        obj.setTemp("00", "T"+num, "XX");
+        //We then add the T0 and XX to the env
+        obj.setEnv("T"+num);
+        obj.setEnv("XX");
+        obj.setEnv("A2");
+        obj.setEnv("01");
+        obj.setEnv("EC");
+        obj.setEnv("T"+num);
+        obj.setEnv("00");
+        obj.setEnv("D0");
+        obj.setEnv("0A");//Dist of next portion
+        //Now set a 0 to a 1
+        obj.setEnv("A9");
+        obj.setEnv("00");
+        obj.setEnv("8D");
+        obj.setEnv("T"+num);
+        obj.setEnv("00");
+        obj.setEnv("A2");
+        obj.setEnv("00");
+        obj.setEnv("EC");
+        obj.setEnv("T"+num);
+        obj.setEnv("00");
         return obj;
     }
     public static TableObj addPrint(TableObj obj, Node printNode, Tree AST){
