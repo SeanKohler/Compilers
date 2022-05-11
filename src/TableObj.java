@@ -8,6 +8,7 @@ public class TableObj {
     HashMap<String,String> temp = new HashMap<String,String>();
     HashMap<String,String> jump = new HashMap<String,String>();
     HashMap<String,String> jumpcount = new HashMap<String,String>();
+    HashMap<String,String> whilejumps = new HashMap<String,String>();
     int ifscope;
     String curjump;
     int counter=0;
@@ -76,5 +77,8 @@ public class TableObj {
     }
     public HashMap<String,String> getJumpTable(){
         return jump;
+    }
+    public HashMap<String,String> getWhileJumps(){
+        return whilejumps;
     }
 }

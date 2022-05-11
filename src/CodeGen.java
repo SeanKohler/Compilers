@@ -127,6 +127,28 @@ public class CodeGen {
             }else if(node.name.equals("WhileStatement")){
                 obj = addWhile(obj,node,AST);
                 resolveJump(obj);
+                System.out.println("WHILE CHILDREN: ");
+                for(int i=0; i<node.children.size(); i++){
+                    System.out.println("*"+node.children.get(i).name);
+                    if(node.children.get(i).name.equals("Block")){
+                        Node cur = node.children.get(i);
+                        int blockchild=0;
+                        for(int j=0; j<cur.children.size(); j++){
+                            System.out.println("BLK CHILD: "+cur.children.get(j).name);
+                            blockchild++;
+                        }
+                        //Now for each existing jump counter we must add to them the children of the new block
+                        HashMap<String,String> jc = obj.jumpcount;
+                        for(String key:jc.keySet()){
+                            int curnum = Integer.parseInt(jc.get(key));
+                            curnum+=blockchild;
+                            obj.jumpcount.put(key,String.valueOf(curnum));
+                        }
+                        //We then add a new jump count for the new while block
+                        obj.setJumpCount(obj.curjump,blockchild);
+                        System.out.println("THIS:::::: "+obj.curjump);
+                    }
+                }
             }else if(node.name.equals("Block")){
                 if(fromifwhile == true){
                     for(int i=0; i<node.children.size(); i++){
@@ -338,8 +360,267 @@ public class CodeGen {
         }
         return obj;
     }
+    public static TableObj addWhileEnd(TableObj obj, String startofWhile){
+        //Every while loop.. Add 0 to acc, Store it in temp, Load a 1 in x reg, compare it to the 0 making it always branch
+        obj.setEnv("A9");
+        obj.setEnv("00");
+        obj.setEnv("8D");
+        int num =obj.getTempTable().size();
+        obj.setTemp("00", "T"+num, "XX");
+        //We then add the T0 and XX to the env
+        obj.setEnv("T"+num);
+        obj.setEnv("XX");
+        obj.setEnv("A2");
+        obj.setEnv("01");
+        obj.setEnv("EC");
+        obj.setEnv("T"+num);
+        obj.setEnv("XX");
+        obj.setEnv("D0");
+        //Now we have to jump the distance back to where the loop started... This will be at the startofWhile var address
+        ArrayList<String> env = obj.getEnv();
+        int i=0;
+        while(!env.get(i).equals("--")){
+            i++;
+        }
+        System.out.println("CURRENT POSITION: "+i);
+        System.out.println("WHILE STARTED AT: "+startofWhile);
+        int toEnd = 255 - i;
+        int toStartofLoop = toEnd + Integer.valueOf(startofWhile);
+        System.out.println("TO END: "+toEnd+" TO START OF LOOP: "+toStartofLoop);
+        String pointer=String.format("%02X", toStartofLoop);
+        obj.setEnv(pointer);
+        return obj;
+    }
     public static TableObj addWhile(TableObj obj, Node whileNode, Tree AST){
         System.out.println("IN WHILE:::");
+        String name = whileNode.children.get(0).name;
+        Node whilechild = whileNode.children.get(0);
+        if(name.equals("!=")||name.equals("==")){
+            String child = whilechild.children.get(0).name;
+            String child2 = whilechild.children.get(1).name;
+            String regex = "[a-z]";
+            String nums = "[0-9]";
+            String startofWhile="";
+            ArrayList<String> env = obj.getEnv();
+            int inc=0;
+            while(!env.get(inc).equals("--")){
+                inc++;
+            }
+            startofWhile = String.valueOf(inc);
+            if(child.matches(regex)&&child2.matches(regex)){
+                obj.setEnv("AE");
+                String addr = lookupAddr(obj, child, whilechild.children.get(0));
+                String tempnum = addr.substring(0,2);//T1
+                String vaddr = addr.substring(2,addr.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+                //Now that we have loaded the first var into x reg. We need to compare the value of the second to the value in the x reg
+                obj.setEnv("EC");
+                addr = lookupAddr(obj, child2, whilechild.children.get(1));
+                tempnum = addr.substring(0,2);//T1
+                vaddr = addr.substring(2,addr.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+                //Now the z flag will be set to 1 if they are equal.
+                //For the while statement we must first set the acc to 0
+                // obj.setEnv("A9");
+                // obj.setEnv("00");
+                // //Now if the z flag was set branch over the next 2 bytes where we set the acc to 1
+                // obj.setEnv("D0");
+                // obj.setEnv("02");
+                // //This will be skipped if the branch is sucessful
+                // obj.setEnv("A9");
+                // obj.setEnv("01");
+                // //Now that we have conditionally set the acc. We set the x reg to 00 and compare the acc to it
+                // obj.setEnv("A2");
+                // obj.setEnv("00");
+                // obj.setEnv("8D");
+                // int num =obj.getTempTable().size();
+                // obj.setTemp("00", "T"+num, "XX");
+                // //We then add the T0 and XX to the env
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+                // obj.setEnv("EC");
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+
+
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+            }else if(child.matches(regex)&&child2.matches(nums)){
+                //The var is a number not a var
+                //Becuase it is a number. We can add the number to the reg and compare the var to it
+                obj.setEnv("A2");//Load a constant
+                obj.setEnv("0"+child2);
+                obj.setEnv("EC");
+                String addr = lookupAddr(obj, child, whilechild.children.get(0));
+                System.out.println(addr);
+                String tempnum = addr.substring(0,2);//T1
+                String vaddr = addr.substring(2,addr.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+                //Now the z flag will be set to 1 if they are equal.
+                //If the z flag is 0 we need to branch as the if condition was not met
+                // obj.setEnv("A9");
+                // obj.setEnv("00");
+                // //Now if the z flag was set branch over the next 2 bytes where we set the acc to 1
+                // obj.setEnv("D0");
+                // obj.setEnv("02");
+                // //This will be skipped if the branch is sucessful
+                // obj.setEnv("A9");
+                // obj.setEnv("01");
+                // //Now that we have conditionally set the acc. We set the x reg to 00 and compare the acc to it
+                // obj.setEnv("A2");
+                // obj.setEnv("00");
+                // obj.setEnv("8D");
+                // int num =obj.getTempTable().size();
+                // obj.setTemp("00", "T"+num, "XX");
+                // //We then add the T0 and XX to the env
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+                // obj.setEnv("EC");
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+            }else if(child.matches(nums)&&child2.matches(regex)){
+                //The var is a number not a var
+                //Becuase it is a number. We can add the number to the reg and compare the var to it
+                obj.setEnv("A2");//Load a constant
+                obj.setEnv("0"+child);
+                obj.setEnv("EC");
+                String addr = lookupAddr(obj, child2, whilechild.children.get(0));
+                System.out.println(addr);
+                String tempnum = addr.substring(0,2);//T1
+                String vaddr = addr.substring(2,addr.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+                //Now the z flag will be set to 1 if they are equal.
+                //If the z flag is 0 we need to branch as the if condition was not met
+                // obj.setEnv("A9");
+                // obj.setEnv("00");
+                // //Now if the z flag was set branch over the next 2 bytes where we set the acc to 1
+                // obj.setEnv("D0");
+                // obj.setEnv("02");
+                // //This will be skipped if the branch is sucessful
+                // obj.setEnv("A9");
+                // obj.setEnv("01");
+                // //Now that we have conditionally set the acc. We set the x reg to 00 and compare the acc to it
+                // obj.setEnv("A2");
+                // obj.setEnv("00");
+                // obj.setEnv("8D");
+                // int num =obj.getTempTable().size();
+                // obj.setTemp("00", "T"+num, "XX");
+                // //We then add the T0 and XX to the env
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+                // obj.setEnv("EC");
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+            }else if(child.matches(nums)&&child2.matches(nums)){
+                obj.setEnv("A2");//Load a constant
+                obj.setEnv("0"+child);
+                //Now we need to store child2 in memory so we can compare a memory to x reg
+                obj.setEnv("A9");
+                obj.setEnv("0"+child2);
+                //Now store the acc in memory
+                obj.setEnv("8D");
+                //We then need to add the next unused temp var Ex.) T0 XX , T1 XX , T2 XX etc...
+                int num =obj.getTempTable().size();
+                obj.setTemp("0"+child2, "T"+num, "XX");
+                //We then add the T0 and XX to the env
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                //Now compare the byte in memory to the x reg
+                obj.setEnv("EC");
+                String addr =lookupAddr(obj, "0"+child2, whilechild.children.get(1));
+                String tempnum = addr.substring(0,2);//T1
+                String vaddr = addr.substring(2,addr.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(vaddr);
+                //Now if the z flag was set we can branch
+                // obj.setEnv("A9");
+                // obj.setEnv("00");
+                // //Now if the z flag was set branch over the next 2 bytes where we set the acc to 1
+                // obj.setEnv("D0");
+                // obj.setEnv("02");
+                // //This will be skipped if the branch is sucessful
+                // obj.setEnv("A9");
+                // obj.setEnv("01");
+                // //Now that we have conditionally set the acc. We set the x reg to 00 and compare the acc to it
+                // obj.setEnv("A2");
+                // obj.setEnv("00");
+                // obj.setEnv("8D");
+                // num =obj.getTempTable().size();
+                // obj.setTemp("00", "T"+num, "XX");
+                // //We then add the T0 and XX to the env
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+                // obj.setEnv("EC");
+                // obj.setEnv("T"+num);
+                // obj.setEnv("XX");
+
+
+
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+            }
+        }
         return obj;
     }
     public static TableObj addIf(TableObj obj, Node ifNode, Tree AST){
@@ -834,6 +1115,17 @@ public class CodeGen {
                 }
                 obj.jump.put(key,String.valueOf(c));
                 System.out.println("PUTTING: "+key+" AT: "+c);
+                HashMap<String,String> wj = obj.getWhileJumps();
+                for(String k: wj.keySet()){
+                    if(k.equals(key)){
+                        addWhileEnd(obj,wj.get(k));
+                        HashMap<String,String> j = obj.getJumpTable();
+                        String curval = j.get(key);
+                        int cur = Integer.valueOf(curval);
+                        cur = cur+12; //The end of while loop is always the same size
+                        obj.jump.put(key,String.valueOf(cur));
+                    }
+                }
             }
         }
         System.out.println("END");

@@ -16,3 +16,89 @@
     print(a)
     }
 }$
+{
+    int a
+    a = 1
+    while (a != 5) {
+        a = 1 + a
+        print(a)
+        if(a!=2){
+            print("not two")
+        }
+        if(a==2){
+            print("two")
+            print("in two this should run")
+        }
+    }
+    print(a)
+} $
+/*
+{
+    int a
+    int b
+    b=9
+    a=0
+    while(a!=b){
+        print("a is")
+        print(a)
+        print("b is")
+        print(b)
+        if(5+a==b){
+            print("a plus five is b")
+        }
+        a = 1+a
+    }
+}$
+/*
+{
+    int a
+    int b
+    a=0
+    b=9
+    while(a!=9){
+        if(a==5){
+            print("this five")
+        }
+        print(a)
+        a=1+a
+    }
+}$
+*/
+/*
+{
+    int a
+    a=0
+    int b
+    b=9
+    while(a==9){
+        print("this should never run")
+        a=9
+    }
+    string s
+    s="yep"
+    if(s=="yep"){
+        print(a)
+        print(s)
+    }
+}$
+*/
+{
+    int a
+    a=0
+    while(a==9){
+        print("equals equals")
+    }
+    while(a!=9){
+        print("not equals")
+        print(a)
+        print("     ")
+        a= 3+a
+    }
+    if(a==9){
+        print("if equals")
+
+    }
+    if(a!=9){
+        print("if not equals")
+    }
+}$
