@@ -3,7 +3,7 @@ import java.util.HashMap;
 
 public class CodeGen {
     public static void CodeGen(Tree AST){
-        System.out.println("PRINT TREE AGAIN");
+        //System.out.println("PRINT TREE AGAIN");
         TableObj tabobj = new TableObj();
         ArrayList<String> env = tabobj.getEnv();
         /*
@@ -12,19 +12,27 @@ public class CodeGen {
         for(int i=0; i<255; i++){
             env.add("--");
         }
-        ScopeTree st = AST.tree;
-        prntTable(st.getRoot(st));
+        //ScopeTree st = AST.tree;
+        //prntTable(st.getRoot(st));
         tabobj.env = env;
         boolean fromifwhile = false;
         prntTree(tabobj,AST.root,0,AST, fromifwhile,0);
-        System.out.println(env.size());
+        //System.out.println(env.size());
         tabobj.setEnv("00");//After the last syscall we need to add a 00
-        Generate(tabobj,AST);
+        //Generate(tabobj,AST);
 
-        tables(tabobj);
-        resolveTMP(tabobj);
-        resolveJMP(tabobj);
-        fillgap(tabobj);
+        //tables(tabobj);
+        ArrayList<String> errs = tabobj.getErrors();
+        if(errs.size()>0){
+            System.out.println("DEBUG: CODE GEN FOUND ERRORS: ");
+            for(int i=0; i<errs.size(); i++){
+                System.out.println(errs.get(i));
+            }
+        }else{
+            resolveTMP(tabobj);
+            resolveJMP(tabobj);
+            fillgap(tabobj);
+        }
     }
     public static void prntTable(ScopeNode current){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
@@ -72,22 +80,22 @@ public class CodeGen {
         return obj;
     }
     public static TableObj prntTree(TableObj obj,Node node, int indent, Tree AST, boolean fromifwhile, int counter){
-        System.out.println(node.scope);
-        System.out.println("CURRENT CHILDREN: "+node.children.size());
+        //System.out.println(node.scope);
+        //System.out.println("CURRENT CHILDREN: "+node.children.size());
         String spacing = "";
         for(int i=0;i<indent; i++){
             spacing+="-";
         }         
         if(node.children.size() > 0){//Branches have children, leaf nodes do not
             spacing+="<" + node.name + ">";
-            System.out.println(spacing);//This line prints the branches
+            //System.out.println(spacing);//This line prints the branches
 
             /*
             *
             * For each different type of branch, add it to the env
             *
             */
-            System.out.println("COUNTER SIZE: "+obj.counter);
+            //System.out.println("COUNTER SIZE: "+obj.counter);
             if(node.name.equals("Var Decl")){
                 obj = addVarDecl(obj,node);
                 resolveJump(obj);
@@ -102,15 +110,15 @@ public class CodeGen {
                 resolveJump(obj);
                 obj = addIf(obj,node, AST);
                 obj.ifscope=node.scope;
-                System.out.println(obj.ifscope);
-                System.out.println("IF CHILDREN: ");
+                // System.out.println(obj.ifscope);
+                // System.out.println("IF CHILDREN: ");
                 for(int i=0; i<node.children.size(); i++){
-                    System.out.println(node.children.get(i).name);
+                    //System.out.println(node.children.get(i).name);
                     if(node.children.get(i).name.equals("Block")){
                         Node cur = node.children.get(i);
                         int blockchild=0;
                         for(int j=0; j<cur.children.size(); j++){
-                            System.out.println("BLK CHILD: "+cur.children.get(j).name);
+                            //System.out.println("BLK CHILD: "+cur.children.get(j).name);
                             blockchild++;
                         }
                         //Now for each existing jump counter we must add to them the children of the new block
@@ -127,14 +135,14 @@ public class CodeGen {
             }else if(node.name.equals("WhileStatement")){
                 obj = addWhile(obj,node,AST);
                 resolveJump(obj);
-                System.out.println("WHILE CHILDREN: ");
+                //System.out.println("WHILE CHILDREN: ");
                 for(int i=0; i<node.children.size(); i++){
-                    System.out.println("*"+node.children.get(i).name);
+                    //System.out.println("*"+node.children.get(i).name);
                     if(node.children.get(i).name.equals("Block")){
                         Node cur = node.children.get(i);
                         int blockchild=0;
                         for(int j=0; j<cur.children.size(); j++){
-                            System.out.println("BLK CHILD: "+cur.children.get(j).name);
+                            //System.out.println("BLK CHILD: "+cur.children.get(j).name);
                             blockchild++;
                         }
                         //Now for each existing jump counter we must add to them the children of the new block
@@ -146,13 +154,13 @@ public class CodeGen {
                         }
                         //We then add a new jump count for the new while block
                         obj.setJumpCount(obj.curjump,blockchild);
-                        System.out.println("THIS:::::: "+obj.curjump);
+                        //System.out.println("THIS:::::: "+obj.curjump);
                     }
                 }
             }else if(node.name.equals("Block")){
                 if(fromifwhile == true){
                     for(int i=0; i<node.children.size(); i++){
-                        System.out.println("BLOCK CHILD: "+node.children.get(i).name);
+                        //System.out.println("BLOCK CHILD: "+node.children.get(i).name);
                         counter++;
                         obj.counter++;
                     }
@@ -167,7 +175,7 @@ public class CodeGen {
                 node.name ="epsilon";
             }
             spacing+="[" + node.name + "] ";
-            System.out.println(spacing);//This line prints the leaf nodes
+            //System.out.println(spacing);//This line prints the leaf nodes
         }
         return obj;
     }
@@ -175,18 +183,18 @@ public class CodeGen {
         HashMap<String,String> tmp = obj.getTempTable();
         HashMap<String,String> jmp = obj.getJumpTable();
         for(String k: tmp.keySet()){
-            System.out.println(k+" "+tmp.get(k));
+            //System.out.println(k+" "+tmp.get(k));
         }
         System.out.println();
         for(String j: jmp.keySet()){
-            System.out.println(j+" "+jmp.get(j));
+            //System.out.println(j+" "+jmp.get(j));
         }
     }
     public static TableObj plus(TableObj obj, Node plusNode, String varname, String from){
-        System.out.println("PLUS");
+        //System.out.println("PLUS");
         String regex = "[a-z]";
         String numregex = "[0-9]";
-        System.out.println(plusNode.children.size());
+        //System.out.println(plusNode.children.size());
         String addr="";
         String tempnum="";
         String vaddr="";
@@ -195,9 +203,9 @@ public class CodeGen {
             tempnum = addr.substring(0,2);//T1
             vaddr = addr.substring(2,addr.length());//XX
         }
-        for(int i=0; i<plusNode.children.size(); i++){
-            System.out.println(plusNode.children.get(i).name);
-        }
+        // for(int i=0; i<plusNode.children.size(); i++){
+        //     System.out.println(plusNode.children.get(i).name);
+        // }
         //a+11+1+1+1+1+1
         if(plusNode.children.size()==3){
             Node current = plusNode;
@@ -250,9 +258,9 @@ public class CodeGen {
             obj.setEnv("8D");
             obj.setEnv("T"+num);
             obj.setEnv("XX");
-            System.out.println("()()()()("+current.children.size());
+            //System.out.println("()()()()("+current.children.size());
             while(current.children.size()==2){   
-                System.out.println("()()()()(");             
+                //System.out.println("()()()()(");             
                 String child = current.children.get(0).name;
                 //Add the child to the acc. Then ADC the temp addr and store it back in the temp addr
                 current = current.children.get(1);
@@ -315,7 +323,7 @@ public class CodeGen {
             }
         }else{
             if(plusNode.children.size()==2){
-                System.out.println("IN ELSE:::");
+                //System.out.println("IN ELSE:::");
                 String child1 = plusNode.children.get(0).name;
                 String child2 = plusNode.children.get(1).name;
                 if(child1.matches(numregex)){
@@ -375,7 +383,7 @@ public class CodeGen {
                     obj.setEnv("FF");
                 }
             }else{
-                System.out.println("SIZEEEE"+plusNode.children.size());
+                //System.out.println("SIZEEEE"+plusNode.children.size());
             }
         }
         return obj;
@@ -402,17 +410,17 @@ public class CodeGen {
         while(!env.get(i).equals("--")){
             i++;
         }
-        System.out.println("CURRENT POSITION: "+i);
-        System.out.println("WHILE STARTED AT: "+startofWhile);
+        // System.out.println("CURRENT POSITION: "+i);
+        // System.out.println("WHILE STARTED AT: "+startofWhile);
         int toEnd = 255 - i;
         int toStartofLoop = toEnd + Integer.valueOf(startofWhile);
-        System.out.println("TO END: "+toEnd+" TO START OF LOOP: "+toStartofLoop);
+        //System.out.println("TO END: "+toEnd+" TO START OF LOOP: "+toStartofLoop);
         String pointer=String.format("%02X", toStartofLoop);
         obj.setEnv(pointer);
         return obj;
     }
     public static TableObj addWhile(TableObj obj, Node whileNode, Tree AST){
-        System.out.println("IN WHILE:::");
+        //System.out.println("IN WHILE:::");
         String name = whileNode.children.get(0).name;
         Node whilechild = whileNode.children.get(0);
         if(name.equals("!=")||name.equals("==")){
@@ -486,7 +494,7 @@ public class CodeGen {
                 obj.setEnv("0"+child2);
                 obj.setEnv("EC");
                 String addr = lookupAddr(obj, child, whilechild.children.get(0));
-                System.out.println(addr);
+                //System.out.println(addr);
                 String tempnum = addr.substring(0,2);//T1
                 String vaddr = addr.substring(2,addr.length());//XX
                 obj.setEnv(tempnum);
@@ -536,7 +544,7 @@ public class CodeGen {
                 obj.setEnv("0"+child);
                 obj.setEnv("EC");
                 String addr = lookupAddr(obj, child2, whilechild.children.get(0));
-                System.out.println(addr);
+                //System.out.println(addr);
                 String tempnum = addr.substring(0,2);//T1
                 String vaddr = addr.substring(2,addr.length());//XX
                 obj.setEnv(tempnum);
@@ -862,10 +870,10 @@ public class CodeGen {
                 obj.setEnv("J"+size);
                 obj.curjump ="J"+size;
             }else if(child.equals("+")){
-                System.out.println("FIRST CHILD::");
+                //System.out.println("FIRST CHILD::");
                 plus(obj,ifchild.children.get(0),child,"IF");
                 String firstaddr = obj.ifaddr;
-                System.out.println("IFADDR:::"+firstaddr);
+                //System.out.println("IFADDR:::"+firstaddr);
 
                 if(ifchild.children.get(1).name.equals("+")){
                     plus(obj,ifchild.children.get(1),ifchild.children.get(1).name,"IF");
@@ -922,7 +930,7 @@ public class CodeGen {
                     obj.curjump ="J"+size;
                 }
             }else if(child2.equals("+")){
-                System.out.println("SECOND CHILD::");
+                //System.out.println("SECOND CHILD::");
                 plus(obj,ifchild.children.get(1),child,"IF");
                 String secondaddr = obj.ifaddr;
                 if(child.matches("[0-9]")){
@@ -957,7 +965,7 @@ public class CodeGen {
                 obj.setEnv("0"+child2);
                 obj.setEnv("EC");
                 String addr = lookupAddr(obj, child, ifchild.children.get(0));
-                System.out.println(addr);
+                //System.out.println(addr);
                 String tempnum = addr.substring(0,2);//T1
                 String vaddr = addr.substring(2,addr.length());//XX
                 obj.setEnv(tempnum);
@@ -980,7 +988,7 @@ public class CodeGen {
                 obj.setEnv("0"+child);
                 obj.setEnv("EC");
                 String addr = lookupAddr(obj, child2, ifchild.children.get(0));
-                System.out.println(addr);
+                //System.out.println(addr);
                 String tempnum = addr.substring(0,2);//T1
                 String vaddr = addr.substring(2,addr.length());//XX
                 obj.setEnv(tempnum);
@@ -1047,7 +1055,7 @@ public class CodeGen {
         return obj;
     }
     public static TableObj resNE(TableObj obj){
-        System.out.println("ACTUALLY A !=");
+        //System.out.println("ACTUALLY A !=");
         obj.setEnv("D0");
         obj.setEnv("0C");//Dist of flipper
         obj.setEnv("A9");
@@ -1079,10 +1087,10 @@ public class CodeGen {
         return obj;
     }
     public static TableObj addPrint(TableObj obj, Node printNode, Tree AST){
-        System.out.println("NNNNNN: "+printNode.children.size()+printNode.children.get(0).name);
-        for(int i=0; i<printNode.children.size(); i++){
-            System.out.println("PRINT NODE!!!: "+printNode.children.get(i).name);
-        }
+        // System.out.println("NNNNNN: "+printNode.children.size()+printNode.children.get(0).name);
+        // for(int i=0; i<printNode.children.size(); i++){
+        //     System.out.println("PRINT NODE!!!: "+printNode.children.get(i).name);
+        // }
         if(printNode.children.size()==1){
             String regex ="[a-z]";
             //System.out.println(printNode.children.get(0).name);
@@ -1107,10 +1115,10 @@ public class CodeGen {
                 obj.setEnv("A2");
                 //If it is a string load a 2 if it is an int load a 1
                 ScopeTree st = AST.tree;
-                prntTable(st.getRoot(st));
+                //prntTable(st.getRoot(st));
                 //TODO USE SYMBOL TABLE TO FIGURE OUT IF VAR IS A STRING OR AN INT
                 String type = retType(st.root,printNode.children.get(0).name,printNode.children.get(0).scope,printNode.children.get(0).name,"");
-                System.out.println("PRINTNODE: "+type);
+                //System.out.println("PRINTNODE: "+type);
                 if(type.equals("STR_TYPE")){
                     obj.setEnv("02");
                 }else{
@@ -1166,13 +1174,134 @@ public class CodeGen {
                     obj.setEnv("A2");
                     obj.setEnv("02");
                     obj.setEnv("FF");
+                }else if(name.equals("==")||name.equals("!=")){
+                    //String name = printNode.children.get(0).name;
+                    Node current = printNode.children.get(0);
+                    // System.out.println("OH NO BOOLEAN HEALL");
+                    // for(int i=0; i<current.children.size(); i++){
+                    //     System.out.println(current.children.get(i).name);
+                    // }
+                    String child1 = current.children.get(0).name;
+                    String child2 = current.children.get(1).name;
+                    String vars ="[a-z]";
+                    String nums ="[0-9]";
+                    if(child1.matches(vars)){
+                        obj.setEnv("AE");
+                        //We need to lookup the addr of the var
+                        //HashMap<String, String> hm = obj.getTempTable();
+                        String varAddr =lookupAddr(obj,child1,current.children.get(0));
+                        String tempnum = varAddr.substring(0,2);//T1
+                        String addr = varAddr.substring(2,varAddr.length());//XX
+                        obj.setEnv(tempnum);//T1
+                        obj.setEnv(addr);//XX
+                    }else if(child1.matches(nums)){
+                        obj.setEnv("A2");
+                        obj.setEnv("0"+child1);
+                    }else if(child1.equals("true")||child1.equals("false")){
+                        child1 = '"'+child1+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                        obj.setEnv("A2");
+                        // //Now we need to add the string to the heap
+                        int frontpos = obj.setHeap(child1);
+                        String pointer=String.format("%02X", frontpos);
+                        obj.setEnv(pointer);
+                    }
+                    //Now load child 2 into memory and EC them
+                    //obj.setEnv("8D");
+                    int num =obj.getTempTable().size();
+                    obj.setTemp("00", "T"+num, "XX");
+                    //We then add the T0 and XX to the env
+                    //obj.setEnv("T"+num);
+                    //obj.setEnv("XX");
+
+                    if(child2.matches(vars)){
+                        obj.setEnv("AD");
+                        //We need to lookup the addr of the var
+                        //HashMap<String, String> hm = obj.getTempTable();
+                        String varAddr =lookupAddr(obj,child2,current.children.get(1));
+                        String tempnum = varAddr.substring(0,2);//T1
+                        String addr = varAddr.substring(2,varAddr.length());//XX
+                        obj.setEnv(tempnum);//T1
+                        obj.setEnv(addr);//XX
+                        obj.setEnv("8D");
+                        obj.setEnv("T"+num);
+                        obj.setEnv("XX");
+                    }else if(child2.matches(nums)){
+                        obj.setEnv("A9");
+                        obj.setEnv("0"+child2);
+                        obj.setEnv("8D");
+                        obj.setEnv("T"+num);
+                        obj.setEnv("XX");
+                    }else if(child2.equals("true")||child2.equals("false")){
+                        child2 = '"'+child2+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                        obj.setEnv("A9");
+                        // //Now we need to add the string to the heap
+                        int frontpos = obj.setHeap(child2);
+                        String pointer=String.format("%02X", frontpos);
+                        obj.setEnv(pointer);
+                        // if(child2.equals("true")){
+                        //     obj.setEnv("01");
+                        // }else{
+                        //     obj.setEnv("00");
+                        // }
+                        obj.setEnv("8D");
+                        obj.setEnv("T"+num);
+                        obj.setEnv("XX");
+                    }
+                    //If they are equal. Print true then skip a bit for the false logic
+                    obj.setEnv("EC");
+                    obj.setEnv("T"+num);
+                    obj.setEnv("XX");
+                    obj.setEnv("D0");
+                    obj.setEnv("11");
+
+                    String t = "true";
+                    t = '"'+t+'"';
+                    obj.setEnv("A0");
+                    //Now we need to add the string to the heap
+                    int frontpos = obj.setHeap(t);
+                    String pointer=String.format("%02X", frontpos);
+                    obj.setEnv(pointer);
+                    obj.setEnv("A2");
+                    obj.setEnv("02");
+                    obj.setEnv("FF");
+                    //Now reset z flag to 0
+                    obj.setEnv("A9");
+                    obj.setEnv("00");
+                    obj.setEnv("8D");
+                    // int num =obj.getTempTable().size();
+                    // obj.setTemp("00", "T"+num, "XX");
+                    //We then add the T0 and XX to the env
+                    obj.setEnv("T"+num);
+                    obj.setEnv("XX");
+                    obj.setEnv("A2");
+                    obj.setEnv("01");
+                    obj.setEnv("EC");
+                    obj.setEnv("T"+num);
+                    obj.setEnv("XX");
+
+                    //Now do that for false
+                    obj.setEnv("D0");
+                    obj.setEnv("05");
+
+                    String f = "false";
+                    f = '"'+f+'"';
+                    obj.setEnv("A0");
+                    //Now we need to add the string to the heap
+                    frontpos = obj.setHeap(f);
+                    pointer=String.format("%02X", frontpos);
+                    obj.setEnv(pointer);
+                    obj.setEnv("A2");
+                    obj.setEnv("02");
+                    obj.setEnv("FF");
+
+                
                 }
 
             }
         }else{
             //TODO
             //print(a+1)
-            System.out.println("GGGGGGG");
+            //System.out.println("GGGGGGG");
             plus(obj,printNode.children.get(0),printNode.children.get(0).name,"PRNT");
 
         }
@@ -1252,10 +1381,38 @@ public class CodeGen {
                 //Now we need to add the string to the heap
                 int frontpos = obj.setHeap(next.name);
                 String pointer=String.format("%02X", frontpos);
-                System.out.println("FRONTPOS: "+frontpos);
-                System.out.println("POINTER: "+pointer);
-                System.out.println("FRONT POS: "+obj.env.get(frontpos));
-                System.out.println("TYPE: "+next.associated.getTknType());
+                // System.out.println("FRONTPOS: "+frontpos);
+                // System.out.println("POINTER: "+pointer);
+                // System.out.println("FRONT POS: "+obj.env.get(frontpos));
+                // System.out.println("TYPE: "+next.associated.getTknType());
+                obj.setEnv(pointer);
+                //Now store it in mem
+                obj.setEnv("8D");
+                String loc = lookupAddr(obj,beingAssigned.name,AssnNode);
+                String tempnum = loc.substring(0,2);//T0
+                String addr = loc.substring(2,loc.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(addr);
+            }else if(next.name.equals("true")){
+                next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                obj.setEnv("A9");
+                //Now we need to add the string to the heap
+                int frontpos = obj.setHeap(next.name);
+                String pointer=String.format("%02X", frontpos);
+                obj.setEnv(pointer);
+                //Now store it in mem
+                obj.setEnv("8D");
+                String loc = lookupAddr(obj,beingAssigned.name,AssnNode);
+                String tempnum = loc.substring(0,2);//T0
+                String addr = loc.substring(2,loc.length());//XX
+                obj.setEnv(tempnum);
+                obj.setEnv(addr);
+            }else if(next.name.equals("false")){
+                next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                obj.setEnv("A9");
+                //Now we need to add the string to the heap
+                int frontpos = obj.setHeap(next.name);
+                String pointer=String.format("%02X", frontpos);
                 obj.setEnv(pointer);
                 //Now store it in mem
                 obj.setEnv("8D");
@@ -1289,8 +1446,8 @@ public class CodeGen {
                 env.set(i,"00");
             }
         }
-        System.out.println();
-        System.out.println("FINAL");
+        // System.out.println();
+        // System.out.println("FINAL");
         System.out.println();
         for(int i=0; i<env.size(); i++){
             System.out.print(env.get(i)+" ");
@@ -1298,14 +1455,14 @@ public class CodeGen {
         return obj;
     }
     public static TableObj resolveJMP(TableObj obj){
-        System.out.println();
+        //System.out.println();
         HashMap<String,String> jmp = obj.getJumpTable();
         ArrayList<String> env = obj.getEnv();
         for(String key: jmp.keySet()){
             for(int i=0; i<env.size(); i++){
                 if(env.get(i).equals(key)){
-                    System.out.println("FOUND: "+key+" AT: "+i);
-                    System.out.println("JUMP TO: "+jmp.get(key));
+                    // System.out.println("FOUND: "+key+" AT: "+i);
+                    // System.out.println("JUMP TO: "+jmp.get(key));
                     int to = Integer.parseInt(jmp.get(key));
                     int dist = to-i-1;//We need to subtract an additional 1 because the jump distance assumes we skip the last place
                     String fin =String.format("%02X", dist);
@@ -1316,15 +1473,15 @@ public class CodeGen {
         return obj;
     }
     public static TableObj resolveJump(TableObj obj){
-        System.out.println("YEPRIGHTHERE");
-        HashMap<String,String> jmp = obj.getJumpTable();
-        for(String key: jmp.keySet()){
-            System.out.println(key+ " "+jmp.get(key));
-        }
-        System.out.println("---------------");
+        //System.out.println("YEPRIGHTHERE");
+        //HashMap<String,String> jmp = obj.getJumpTable();
+        // for(String key: jmp.keySet()){
+        //     System.out.println(key+ " "+jmp.get(key));
+        // }
+        // System.out.println("---------------");
         HashMap<String,String> jcount = obj.jumpcount;
         for(String key: jcount.keySet()){
-            System.out.println(key+" "+jcount.get(key));
+            //System.out.println(key+" "+jcount.get(key));
             int num = Integer.parseInt(jcount.get(key));
             num-=1;
             obj.jumpcount.put(key,String.valueOf(num));
@@ -1335,7 +1492,7 @@ public class CodeGen {
                     c++;
                 }
                 obj.jump.put(key,String.valueOf(c));
-                System.out.println("PUTTING: "+key+" AT: "+c);
+                //System.out.println("PUTTING: "+key+" AT: "+c);
                 HashMap<String,String> wj = obj.getWhileJumps();
                 for(String k: wj.keySet()){
                     if(k.equals(key)){
@@ -1349,7 +1506,7 @@ public class CodeGen {
                 }
             }
         }
-        System.out.println("END");
+        //System.out.println("END");
         return obj;
     }
     public static TableObj resolveTMP(TableObj obj){
@@ -1358,13 +1515,13 @@ public class CodeGen {
         while(!env.get(spot).equals("--")){
             spot++;
         }
-        System.out.println(spot);
-        System.out.println(String.format("%02X", spot));
-        System.out.println(env.get(spot));
+        // System.out.println(spot);
+        // System.out.println(String.format("%02X", spot));
+        // System.out.println(env.get(spot));
         for(String key: obj.getTempTable().keySet()){
-            String data = obj.getTempTable().get(key);
-            System.out.println("KEY: "+key);
-            System.out.println("DATA: "+data);
+            //String data = obj.getTempTable().get(key);
+            // System.out.println("KEY: "+key);
+            // System.out.println("DATA: "+data);
             String tempnum = key.substring(0,2);//T1
             for(int i=0; i<env.size(); i++){
                 if(env.get(i).equals(tempnum)){
@@ -1374,9 +1531,9 @@ public class CodeGen {
             env.set(spot,"!!");
             spot++;
         }
-        for(int i=0; i<obj.getEnv().size(); i++){
-            System.out.print(obj.getEnv().get(i)+" ");
-        }
+        // for(int i=0; i<obj.getEnv().size(); i++){
+        //     System.out.print(obj.getEnv().get(i)+" ");
+        // }
         return obj;
     }
     public static String retType(ScopeNode current, String val,int scope,String firstName, String type){

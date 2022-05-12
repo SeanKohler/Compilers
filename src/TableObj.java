@@ -38,8 +38,13 @@ public class TableObj {
             }
         }
         //Now that we have removed the quotes from the str, add it to the heap
-        while(!env.get(lastpos).equals("--")){
+        while(!env.get(lastpos).equals("--")&&lastpos>0){
             lastpos--;
+            if(lastpos==1){
+                //System.out.println("ERROR: HEAP RAN INTO THE STACK");
+                errors.add("ERROR: HEAP RAN INTO THE STACK");
+                return 999;
+            }
         }
         //Now we know the first empty space in the heap.. remove the size of the string we want to add
         lastpos -= rawstr.length();
@@ -80,5 +85,8 @@ public class TableObj {
     }
     public HashMap<String,String> getWhileJumps(){
         return whilejumps;
+    }
+    public ArrayList<String> getErrors(){
+        return errors;
     }
 }
