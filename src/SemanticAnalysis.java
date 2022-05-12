@@ -108,7 +108,7 @@ public class SemanticAnalysis {
             tree.addNode(tknStream.get(0), "leaf", String.valueOf(tknStream.get(0).getCharacter()),scope);//a = 1 + a
             Match("ID", tknStream, tree, scope, valid);
             Match("Assignment", tknStream, tree, scope, valid);
-            ParseExpression(tknStream, tree, scope, valid,"Assignment");
+            ParseExpression(tknStream, tree, scope, valid,"Assignment","STMT");
             //tree.moveUp("Assignment");
         } else if (type.equals("WHILE_STMT")) {// While Statement
             ParseWhileStatement(tknStream, tree, scope, valid,"WhileStmt");
@@ -134,7 +134,7 @@ public class SemanticAnalysis {
         return tknStream;
     }
 
-    public static ArrayList<Token> ParseExpression(ArrayList<Token> tknStream, Tree tree, int scope, boolean valid, String from) {
+    public static ArrayList<Token> ParseExpression(ArrayList<Token> tknStream, Tree tree, int scope, boolean valid, String from,String fr2) {
         prnt("parseExpression()","DEBUG");
         //tree.addNode(tknStream.get(0), "branch", "Expression",0);//Each new Expression is a branch
         Token next = tknStream.get(0);
@@ -148,8 +148,12 @@ public class SemanticAnalysis {
         } else if (type.equals("ID")) {// MatchID
             tree.addNode(tknStream.get(0), "leaf",tknStream.get(0).getCharacter(), scope);
             Match("ID", tknStream, tree,scope, valid);
-            if(from.equals("Assignment")||from.equals("ParseBool")||from.equals("PrintStmt")){
-                tree.moveUp("ASSN");
+            if(fr2.equals("WhileStmt")){
+                //Skip
+            }else{
+                if(from.equals("Assignment")||from.equals("ParseBool")||from.equals("PrintStmt")){
+                    tree.moveUp("ASSN");
+                }
             }
         }else{
             prnt("INVALID IN EXPRESSION GOT: "+next.getCharacter(),"ERROR");
@@ -241,7 +245,7 @@ public class SemanticAnalysis {
         tree.addNode(tknStream.get(0), "branch", "PrintStatement",scope);//Each new PrintStatement is a branch
         Match("print", tknStream, tree, scope, valid);
         Match("(", tknStream, tree, scope, valid);
-        ParseExpression(tknStream, tree, scope, valid,"PrintStmt");
+        ParseExpression(tknStream, tree, scope, valid,"PrintStmt","PRNT");
         Match(")", tknStream, tree, scope, valid);
         if (!validtest(tknStream)) {
             prnt("INVALID IN PARSE PRINT STATEMENT","ERROR");
@@ -277,8 +281,8 @@ public class SemanticAnalysis {
                 }
             }
             tknStream.remove(inc);
-            ParseExpression(tknStream, tree,scope, valid,"ParseBool1");
-            ParseExpression(tknStream, tree,scope, valid,"ParseBool");
+            ParseExpression(tknStream, tree,scope, valid,"ParseBool1",from);
+            ParseExpression(tknStream, tree,scope, valid,"ParseBool",from);
             Match(")", tknStream, tree,scope, valid);
             tree.moveUp("BOOLOP");
             
@@ -308,7 +312,7 @@ public class SemanticAnalysis {
         Match("if", tknStream, tree, scope, valid);
         ParseBooleanExpression(tknStream, tree, scope, valid,from);
         ParseBlock(tknStream, tree, scope, valid);
-        tree.moveUp("IFSTMT");
+        //tree.moveUp("IFSTMT");
         return tknStream;
     }
 
@@ -341,7 +345,7 @@ public class SemanticAnalysis {
             current = tknStream.get(0);
         }
         tree.addNode(tknStream.get(0), "leaf",'"'+full+'"',scope);//Each new CharList is a leaf
-        if(from.equals("BoolOp")){
+        if(from.equals("BoolOp")||from.equals("ParseBool1")){
 
         }else{
            tree.moveUp("CharList"); 

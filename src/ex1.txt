@@ -1,55 +1,19 @@
-/* Test case for a 'regular' program. Prints 1true23strastrbtrue */
+/*
+Demonstrates compiler's ability to generate code that properly handles variable addition
+Credit: Tien
+*/
 {
-    int a
-    a = 1
-    print(a)
-    boolean b
-    b = true
-    print(b)
-    {
-        int a
-        a = 2
-        print(a)
-    }
-    {
-        int a
-        a = 3
-        print(a)
-    }
-    string s
-    s = "stra"
-    print(s)
-    s = "strb"
-    print(s)
-    if (a != 5) {
-        print("true")
-    }
-    if (a == 5) {
-        print("false")
-    }
-}$
-{
-    int a
-    a=1
-    print(a)
-    {
-        int b
-        string g
-        print(a)
-        print(3+a)
-        print(3+b)
-        g = "test"
-        print(g)
-        print("test")
-        string n 
-        n= "h"
-        print(n)
-        print("h")
-        print("c")
-    }
-    int b
-    int c 
-    c=b
-    print(c)
-    print(b)
+int a
+a = 1
+int b
+b = 1
+b = 1 + a
+while (2 + a != 3 + b) {
+a = 1 + a
+print("int a is ")
+print(a)
+print(" ")
+}
+print("int b is ")
+print(b)
 }$

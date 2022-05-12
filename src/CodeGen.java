@@ -303,59 +303,79 @@ public class CodeGen {
                 obj.setEnv("8D");
                 obj.setEnv(tempnum);
                 obj.setEnv(vaddr);
+            }else if(from.equals("PRNT")){
+                obj.setEnv("AC");
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                obj.setEnv("A2");
+                obj.setEnv("01");
+                obj.setEnv("FF");
+            }else if(from.equals("WHILE")){
+                //nothing here. We know the last temp addr is what we need
             }
         }else{
-            System.out.println("IN ELSE:::");
-            String child1 = plusNode.children.get(0).name;
-            String child2 = plusNode.children.get(1).name;
-            if(child1.matches(numregex)){
-                obj.setEnv("A9");
-                obj.setEnv("0"+child1);
-            }else if(child1.matches(regex)){
-                obj.setEnv("AD");
-                String varaddr = lookupAddr(obj, child1, plusNode.children.get(0));
-                String n = varaddr.substring(0,2);//T1
-                String ad = varaddr.substring(2,varaddr.length());//XX
-                obj.setEnv(n);
-                obj.setEnv(ad);
-            }
-            obj.setEnv("8D");
-
-            int num =obj.getTempTable().size();
-            if(child1.matches(numregex)){
-                obj.setTemp("0"+child1, "T"+num, "XX");
-            }else if(child1.matches(regex)){
-                obj.setTemp(child1, "T"+num, "XX");
-            }
-            obj.ifaddr = "T"+num+"XX";
-
-            obj.setEnv("T"+num);
-            obj.setEnv("XX");
-            //Now load the second child to acc and ADC the mem address of child1
-            if(child2.matches(numregex)){
-                obj.setEnv("A9");
-                obj.setEnv("0"+child2);
-            }else if(child2.matches(regex)){
-                obj.setEnv("AD");
-                String varaddr = lookupAddr(obj, child2, plusNode.children.get(1));
-                String n = varaddr.substring(0,2);//T1
-                String ad = varaddr.substring(2,varaddr.length());//XX
-                obj.setEnv(n);
-                obj.setEnv(ad);
-            }
-            obj.setEnv("6D");
-            obj.setEnv("T"+num);
-            obj.setEnv("XX");
-            //Store the result back in the temp addr
-            obj.setEnv("8D");
-            obj.setEnv("T"+num);
-            obj.setEnv("XX");
-            if(from.equals("IF")){
-                //Skip in here
-            }else if(from.equals("ASSN")){//This puts the result of the addition back into the addr of the first var
+            if(plusNode.children.size()==2){
+                System.out.println("IN ELSE:::");
+                String child1 = plusNode.children.get(0).name;
+                String child2 = plusNode.children.get(1).name;
+                if(child1.matches(numregex)){
+                    obj.setEnv("A9");
+                    obj.setEnv("0"+child1);
+                }else if(child1.matches(regex)){
+                    obj.setEnv("AD");
+                    String varaddr = lookupAddr(obj, child1, plusNode.children.get(0));
+                    String n = varaddr.substring(0,2);//T1
+                    String ad = varaddr.substring(2,varaddr.length());//XX
+                    obj.setEnv(n);
+                    obj.setEnv(ad);
+                }
                 obj.setEnv("8D");
-                obj.setEnv(tempnum);
-                obj.setEnv(vaddr);
+    
+                int num =obj.getTempTable().size();
+                if(child1.matches(numregex)){
+                    obj.setTemp("0"+child1, "T"+num, "XX");
+                }else if(child1.matches(regex)){
+                    obj.setTemp(child1, "T"+num, "XX");
+                }
+                obj.ifaddr = "T"+num+"XX";
+    
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                //Now load the second child to acc and ADC the mem address of child1
+                if(child2.matches(numregex)){
+                    obj.setEnv("A9");
+                    obj.setEnv("0"+child2);
+                }else if(child2.matches(regex)){
+                    obj.setEnv("AD");
+                    String varaddr = lookupAddr(obj, child2, plusNode.children.get(1));
+                    String n = varaddr.substring(0,2);//T1
+                    String ad = varaddr.substring(2,varaddr.length());//XX
+                    obj.setEnv(n);
+                    obj.setEnv(ad);
+                }
+                obj.setEnv("6D");
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                //Store the result back in the temp addr
+                obj.setEnv("8D");
+                obj.setEnv("T"+num);
+                obj.setEnv("XX");
+                if(from.equals("IF")){
+                    //Skip in here
+                }else if(from.equals("ASSN")){//This puts the result of the addition back into the addr of the first var
+                    obj.setEnv("8D");
+                    obj.setEnv(tempnum);
+                    obj.setEnv(vaddr);
+                }else if(from.equals("PRNT")){
+                    obj.setEnv("AC");
+                    obj.setEnv("T"+num);
+                    obj.setEnv("XX");
+                    obj.setEnv("A2");
+                    obj.setEnv("01");
+                    obj.setEnv("FF");
+                }
+            }else{
+                System.out.println("SIZEEEE"+plusNode.children.size());
             }
         }
         return obj;
@@ -619,7 +639,178 @@ public class CodeGen {
                 obj.setEnv("J"+size);
                 obj.curjump ="J"+size;
                 obj.whilejumps.put("J"+size, startofWhile);
+            }else if(child.equals("+")&&child2.equals("+")){
+                //String child = whilechild.children.get(0).name;
+                //String child2 = whilechild.children.get(1).name;
+                plus(obj, whilechild.children.get(0), child, "WHILE");
+                //We know the highest temp var is the current one being used to store the result of child 1
+                int numchild1 =obj.getTempTable().size();
+                numchild1-=1;//This is the pos of the result from the first child addition
+
+                //Now do the addition on the second child
+                plus(obj,whilechild.children.get(1),child2, "WHILE");
+
+                int numchild2 =obj.getTempTable().size();
+                numchild2-=1;//This is the pos of the result from the first child addition
+
+                //Now we load the first child into the X reg and compare the result of child2 to it
+                obj.setEnv("AE");
+                obj.setEnv("T"+numchild1);
+                obj.setEnv("XX");
+                obj.setEnv("EC");
+                obj.setEnv("T"+numchild2);
+                obj.setEnv("XX");
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+
+            }else if(child.equals("+")){
+                plus(obj, whilechild.children.get(0), child, "WHILE");
+                //We know the highest temp var is the current one being used to store the result of child 1
+                int numchild1 =obj.getTempTable().size();
+                numchild1-=1;//This is the pos of the result from the first child addition
+                //child.matches(nums)&&child2.matches(regex)
+                if(child2.matches(regex)){
+                    obj.setEnv("AE");
+                    String addr = lookupAddr(obj, child2, whilechild.children.get(1));
+                    String tempnum = addr.substring(0,2);//T1
+                    String vaddr = addr.substring(2,addr.length());//XX
+                    obj.setEnv(tempnum);
+                    obj.setEnv(vaddr);
+                }else if(child2.matches(nums)){
+                    obj.setEnv("A2");
+                    obj.setEnv("0"+child2);
+                }
+                obj.setEnv("EC");
+                obj.setEnv("T"+numchild1);
+                obj.setEnv("XX");
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+
+            }else if(child2.equals("+")){
+                plus(obj,whilechild.children.get(1),child2, "WHILE");
+
+                int numchild2 =obj.getTempTable().size();
+                numchild2-=1;//This is the pos of the result from the first child addition
+
+
+                if(child.matches(regex)){
+                    obj.setEnv("AE");
+                    String addr = lookupAddr(obj, child, whilechild.children.get(0));
+                    String tempnum = addr.substring(0,2);//T1
+                    String vaddr = addr.substring(2,addr.length());//XX
+                    obj.setEnv(tempnum);
+                    obj.setEnv(vaddr);
+                }else if(child.matches(nums)){
+                    obj.setEnv("A2");
+                    obj.setEnv("0"+child);
+                }
+
+                obj.setEnv("EC");
+                obj.setEnv("T"+numchild2);
+                obj.setEnv("XX");
+                if(name.equals("!=")){
+                    resNE(obj);
+                }
+
+
+                obj.setEnv("D0");
+                HashMap<String,String> jmp =obj.getJumpTable();
+                int size = jmp.size();
+                obj.setJump("J"+size,"XX");
+                obj.setEnv("J"+size);
+                obj.curjump ="J"+size;
+                obj.whilejumps.put("J"+size, startofWhile);
+
+
             }
+        }else if(name.equals("true")){
+            //TODO
+            String startofWhile="";
+            ArrayList<String> env = obj.getEnv();
+            int inc=0;
+            while(!env.get(inc).equals("--")){
+                inc++;
+            }
+            startofWhile = String.valueOf(inc);
+            obj.setEnv("A9");
+            obj.setEnv("00");
+            obj.setEnv("8D");
+            //We then need to add the next unused temp var Ex.) T0 XX , T1 XX , T2 XX etc...
+            int num =obj.getTempTable().size();
+            obj.setTemp("00", "T"+num, "XX");
+            //We then add the T0 and XX to the env
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            obj.setEnv("A2");
+            obj.setEnv("00");
+
+            //Now compare 00 to 00 which will always be true making an infinite loop
+            obj.setEnv("EC");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+
+            obj.setEnv("D0");
+            HashMap<String,String> jmp =obj.getJumpTable();
+            int size = jmp.size();
+            obj.setJump("J"+size,"XX");
+            obj.setEnv("J"+size);
+            obj.curjump ="J"+size;
+            obj.whilejumps.put("J"+size, startofWhile);
+        }else if(name.equals("false")){
+            //TODO
+            String startofWhile="";
+            ArrayList<String> env = obj.getEnv();
+            int inc=0;
+            while(!env.get(inc).equals("--")){
+                inc++;
+            }
+            startofWhile = String.valueOf(inc);
+
+
+            obj.setEnv("A9");
+            obj.setEnv("01");
+            obj.setEnv("8D");
+            //We then need to add the next unused temp var Ex.) T0 XX , T1 XX , T2 XX etc...
+            int num =obj.getTempTable().size();
+            obj.setTemp("00", "T"+num, "XX");
+            //We then add the T0 and XX to the env
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+            obj.setEnv("A2");
+            obj.setEnv("00");
+
+            //Now compare 01 to 00 which will always be true making an infinite loop
+            obj.setEnv("EC");
+            obj.setEnv("T"+num);
+            obj.setEnv("XX");
+
+            obj.setEnv("D0");
+            HashMap<String,String> jmp =obj.getJumpTable();
+            int size = jmp.size();
+            obj.setJump("J"+size,"XX");
+            obj.setEnv("J"+size);
+            obj.curjump ="J"+size;
+            obj.whilejumps.put("J"+size, startofWhile);
         }
         return obj;
     }
@@ -888,7 +1079,10 @@ public class CodeGen {
         return obj;
     }
     public static TableObj addPrint(TableObj obj, Node printNode, Tree AST){
-        //System.out.println(printNode.children.size());
+        System.out.println("NNNNNN: "+printNode.children.size()+printNode.children.get(0).name);
+        for(int i=0; i<printNode.children.size(); i++){
+            System.out.println("PRINT NODE!!!: "+printNode.children.get(i).name);
+        }
         if(printNode.children.size()==1){
             String regex ="[a-z]";
             //System.out.println(printNode.children.get(0).name);
@@ -948,12 +1142,38 @@ public class CodeGen {
                     obj.setEnv("A2");
                     obj.setEnv("02");
                     obj.setEnv("FF");
+                }else if(name.equals("+")){
+                    plus(obj,printNode.children.get(0),printNode.children.get(0).name,"PRNT");
+                }else if(name.equals("true")){
+                    name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    obj.setEnv("A0");
+                    //Now we need to add the string to the heap
+                    int frontpos = obj.setHeap(name);
+                    String pointer=String.format("%02X", frontpos);
+                    obj.setEnv(pointer);
+                    //Now load a 2 in the X reg to print the 00 terminated string
+                    obj.setEnv("A2");
+                    obj.setEnv("02");
+                    obj.setEnv("FF");
+                }else if(name.equals("false")){
+                    name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    obj.setEnv("A0");
+                    //Now we need to add the string to the heap
+                    int frontpos = obj.setHeap(name);
+                    String pointer=String.format("%02X", frontpos);
+                    obj.setEnv(pointer);
+                    //Now load a 2 in the X reg to print the 00 terminated string
+                    obj.setEnv("A2");
+                    obj.setEnv("02");
+                    obj.setEnv("FF");
                 }
 
             }
         }else{
             //TODO
             //print(a+1)
+            System.out.println("GGGGGGG");
+            plus(obj,printNode.children.get(0),printNode.children.get(0).name,"PRNT");
 
         }
         return obj;
@@ -1096,6 +1316,7 @@ public class CodeGen {
         return obj;
     }
     public static TableObj resolveJump(TableObj obj){
+        System.out.println("YEPRIGHTHERE");
         HashMap<String,String> jmp = obj.getJumpTable();
         for(String key: jmp.keySet()){
             System.out.println(key+ " "+jmp.get(key));
