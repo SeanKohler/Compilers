@@ -1,24 +1,27 @@
-/* Boolean Expr Printing: This test case
-- demonstrates the compiler's ability to
-- generate code for computing the result
-- of a BooeleanExpr and printing the result
-- Result: falsefalsetruetruetruetruefalsefalsefalsetrue
-- Credit: Tien */
+/* This code segment uses the max
+- allotted memory 256 bytes
+- Also this is an infinite loop. Credit: Tien */
 {
-boolean a
-a = false
-print((a == true))
-print((true == a))
-print((a == false))
-/*print((false == a))
-print((a != true))
-print((true != a))
-print((a != false))
-print((false != a))
-*/
-print(a)
-if (a == false) {
-a = true
+int a
+a = 1
+if("a" == "a") {
+a = 2
+print("a now is two")
 }
-print(a)
-}$
+if(a != 1) {
+a = 3
+print(" a now is three")
+}
+if(a == 1) {
+a = 3
+print("this does not print")
+}
+
+while true {
+print(" this will always be true hahahahahahaha")
+}
+
+if false {
+print("this")
+}
+} $

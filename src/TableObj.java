@@ -13,6 +13,8 @@ public class TableObj {
     String curjump;
     int counter=0;
     String ifaddr="";
+    String truepos="";
+    String falsepos="";
     public void setEnv(String opCode){
         boolean foundspot=false;
         for(int i=0; i<env.size(); i++){
@@ -73,6 +75,9 @@ public class TableObj {
             len = "0"+len;
         }
         this.jumpcount.put(j,len);
+    }
+    public void setErr(String msg){
+        errors.add(msg);
     }
     public ArrayList<String> getEnv(){
         return env;

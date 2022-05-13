@@ -2,7 +2,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CodeGen {
+    static ScopeTree st;
     public static void CodeGen(Tree AST){
+
+        Tree t= AST;
+        st = t.tree;
         //System.out.println("PRINT TREE AGAIN");
         TableObj tabobj = new TableObj();
         ArrayList<String> env = tabobj.getEnv();
@@ -12,6 +16,17 @@ public class CodeGen {
         for(int i=0; i<255; i++){
             env.add("--");
         }
+        String strt = "true";
+        String strf = "false";
+        strt = '"'+strt+'"';
+        int trueposint =tabobj.setHeap(strt);
+        String truepointer=String.format("%02X", trueposint);
+        strf = '"'+strf+'"';
+        int falseposint =tabobj.setHeap(strf);
+        String falsepointer=String.format("%02X", falseposint);
+
+        tabobj.truepos = truepointer;
+        tabobj.falsepos = falsepointer;
         //ScopeTree st = AST.tree;
         //prntTable(st.getRoot(st));
         tabobj.env = env;
@@ -23,18 +38,38 @@ public class CodeGen {
 
         //tables(tabobj);
         ArrayList<String> errs = tabobj.getErrors();
-        if(errs.size()>0){
+        int ecount = tabobj.errors.size();
+        if(ecount>0){
             System.out.println("DEBUG: CODE GEN FOUND ERRORS: ");
-            for(int i=0; i<errs.size(); i++){
-                System.out.println(errs.get(i));
-            }
+            printErrors(errs);
         }else{
+            //We must check for errors after each on of these
             resolveTMP(tabobj);
-            resolveJMP(tabobj);
-            fillgap(tabobj);
+
+            errs = tabobj.getErrors();
+            ecount = tabobj.errors.size();
+            if(ecount>0){
+                System.out.println("DEBUG: CODE GEN FOUND ERRORS: ");
+                printErrors(errs);
+            }else{
+                resolveJMP(tabobj);
+                errs = tabobj.getErrors();
+                ecount = tabobj.errors.size();
+                if(ecount>0){
+                    System.out.println("DEBUG: CODE GEN FOUND ERRORS: ");
+                    printErrors(errs);
+                }else{
+                    fillgap(tabobj);
+                }
+            }
         }
     }
-    public static void prntTable(ScopeNode current){
+    public static void printErrors(ArrayList<String> errs){
+        for(int i=0; i<errs.size(); i++){
+            System.out.println(errs.get(i));
+        }
+    }
+    public static int prntTable(ScopeNode current,String varname, int scope, boolean found){
         if(current.children.size() > 0){//Branches have children, leaf nodes do not
             //spacing+="<" + node.name + ">";
             HashMap<String,SymbolObj> hm = current.getMap();
@@ -49,10 +84,15 @@ public class CodeGen {
                 }else if(type.equals("STR_TYPE")){
                     type = "string";
                 }
-                System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
+               // System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
+
+                if(key.equals(varname)&&hm.get(key).getScope()==scope){
+                    found=true;
+                   // System.out.println("YOU ARE LOOKING FOR VAR: "+varname+" IN SCOPE: "+scope);
+                }
             }
             for(int j=0; j<current.children.size(); j++){
-                prntTable(current.children.get(j));//We add one to create separation for its child nodes
+                prntTable(current.children.get(j),varname,scope,found);//We add one to create separation for its child nodes
             }
         }else{
             HashMap<String,SymbolObj> hm = current.getMap();
@@ -67,11 +107,16 @@ public class CodeGen {
                 }else if(type.equals("STR_TYPE")){
                     type = "string";
                 }
-                System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
+               // System.out.println(key+"\t " + type+"\t "+ + hm.get(key).getScope()+"\t "+hm.get(key).associated.getLinenumber());
+                if(key.equals(varname)&&hm.get(key).getScope()==scope){
+                    found=true;
+                   // System.out.println("YOU ARE LOOKING FOR VAR: "+varname+" IN SCOPE: "+scope);
+                }
             }
         }
+        return 0;
     }
-    public static TableObj Generate(TableObj obj, Tree AST){
+    public static TableObj Generate(TableObj obj){
         ArrayList<String>env = obj.getEnv();
         for(int i=0; i<env.size(); i++){
             System.out.print(env.get(i)+" ");
@@ -409,6 +454,14 @@ public class CodeGen {
         int i=0;
         while(!env.get(i).equals("--")){
             i++;
+            if(i==env.size()-2){
+                //obj.setErr("DEBUG: ERROR STACK RAN INTO HEAP");
+                ArrayList<String> e = obj.getErrors();
+                e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                //System.out.println("1OOOO "+obj.errors.size());
+                //obj.errors.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                return obj;
+            }
         }
         // System.out.println("CURRENT POSITION: "+i);
         // System.out.println("WHILE STARTED AT: "+startofWhile);
@@ -433,6 +486,12 @@ public class CodeGen {
             int inc=0;
             while(!env.get(inc).equals("--")){
                 inc++;
+                if(inc==env.size()-2){
+                    ArrayList<String> e = obj.getErrors();
+                    e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                   // System.out.println("2OOOO "+obj.errors.size());
+                    return obj;
+                }
             }
             startofWhile = String.valueOf(inc);
             if(child.matches(regex)&&child2.matches(regex)){
@@ -758,6 +817,12 @@ public class CodeGen {
             int inc=0;
             while(!env.get(inc).equals("--")){
                 inc++;
+                if(inc==env.size()-2){
+                    ArrayList<String> e = obj.getErrors();
+                    e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                  //  System.out.println("3OOOO "+obj.errors.size());
+                    return obj;
+                }
             }
             startofWhile = String.valueOf(inc);
             obj.setEnv("A9");
@@ -791,6 +856,12 @@ public class CodeGen {
             int inc=0;
             while(!env.get(inc).equals("--")){
                 inc++;
+                if(inc==env.size()-2){
+                    ArrayList<String> e = obj.getErrors();
+                    e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                   // System.out.println("4OOOO "+obj.errors.size());
+                    return obj;
+                }
             }
             startofWhile = String.valueOf(inc);
 
@@ -1118,11 +1189,13 @@ public class CodeGen {
                 //prntTable(st.getRoot(st));
                 //TODO USE SYMBOL TABLE TO FIGURE OUT IF VAR IS A STRING OR AN INT
                 String type = retType(st.root,printNode.children.get(0).name,printNode.children.get(0).scope,printNode.children.get(0).name,"");
-                //System.out.println("PRINTNODE: "+type);
+               // System.out.println("PRINTNODE: "+type);
                 if(type.equals("STR_TYPE")){
                     obj.setEnv("02");
-                }else{
+                }else if(type.equals("INT_TYPE")){
                     obj.setEnv("01");
+                }else if(type.equals("BOOL_TYPE")){
+                    obj.setEnv("02");
                 }
                 //TODO
                 //Sys call
@@ -1153,23 +1226,17 @@ public class CodeGen {
                 }else if(name.equals("+")){
                     plus(obj,printNode.children.get(0),printNode.children.get(0).name,"PRNT");
                 }else if(name.equals("true")){
-                    name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    //name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
                     obj.setEnv("A0");
-                    //Now we need to add the string to the heap
-                    int frontpos = obj.setHeap(name);
-                    String pointer=String.format("%02X", frontpos);
-                    obj.setEnv(pointer);
+                    obj.setEnv(obj.truepos);
                     //Now load a 2 in the X reg to print the 00 terminated string
                     obj.setEnv("A2");
                     obj.setEnv("02");
                     obj.setEnv("FF");
                 }else if(name.equals("false")){
-                    name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    //name = '"'+name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
                     obj.setEnv("A0");
-                    //Now we need to add the string to the heap
-                    int frontpos = obj.setHeap(name);
-                    String pointer=String.format("%02X", frontpos);
-                    obj.setEnv(pointer);
+                    obj.setEnv(obj.falsepos);
                     //Now load a 2 in the X reg to print the 00 terminated string
                     obj.setEnv("A2");
                     obj.setEnv("02");
@@ -1197,13 +1264,12 @@ public class CodeGen {
                     }else if(child1.matches(nums)){
                         obj.setEnv("A2");
                         obj.setEnv("0"+child1);
-                    }else if(child1.equals("true")||child1.equals("false")){
-                        child1 = '"'+child1+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    }else if(child1.equals("true")){
                         obj.setEnv("A2");
-                        // //Now we need to add the string to the heap
-                        int frontpos = obj.setHeap(child1);
-                        String pointer=String.format("%02X", frontpos);
-                        obj.setEnv(pointer);
+                        obj.setEnv(obj.truepos);
+                    }else if(child1.equals("false")){
+                        obj.setEnv("A2");
+                        obj.setEnv(obj.falsepos);
                     }
                     //Now load child 2 into memory and EC them
                     //obj.setEnv("8D");
@@ -1231,18 +1297,15 @@ public class CodeGen {
                         obj.setEnv("8D");
                         obj.setEnv("T"+num);
                         obj.setEnv("XX");
-                    }else if(child2.equals("true")||child2.equals("false")){
-                        child2 = '"'+child2+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                    }else if(child2.equals("true")){
                         obj.setEnv("A9");
-                        // //Now we need to add the string to the heap
-                        int frontpos = obj.setHeap(child2);
-                        String pointer=String.format("%02X", frontpos);
-                        obj.setEnv(pointer);
-                        // if(child2.equals("true")){
-                        //     obj.setEnv("01");
-                        // }else{
-                        //     obj.setEnv("00");
-                        // }
+                        obj.setEnv(obj.truepos);
+                        obj.setEnv("8D");
+                        obj.setEnv("T"+num);
+                        obj.setEnv("XX");
+                    }else if(child2.equals("false")){
+                        obj.setEnv("A9");
+                        obj.setEnv(obj.falsepos);
                         obj.setEnv("8D");
                         obj.setEnv("T"+num);
                         obj.setEnv("XX");
@@ -1251,16 +1314,14 @@ public class CodeGen {
                     obj.setEnv("EC");
                     obj.setEnv("T"+num);
                     obj.setEnv("XX");
+                    if(name.equals("!=")){
+                        resNE(obj);
+                    }
                     obj.setEnv("D0");
                     obj.setEnv("11");
-
-                    String t = "true";
-                    t = '"'+t+'"';
                     obj.setEnv("A0");
                     //Now we need to add the string to the heap
-                    int frontpos = obj.setHeap(t);
-                    String pointer=String.format("%02X", frontpos);
-                    obj.setEnv(pointer);
+                    obj.setEnv(obj.truepos);
                     obj.setEnv("A2");
                     obj.setEnv("02");
                     obj.setEnv("FF");
@@ -1283,13 +1344,8 @@ public class CodeGen {
                     obj.setEnv("D0");
                     obj.setEnv("05");
 
-                    String f = "false";
-                    f = '"'+f+'"';
                     obj.setEnv("A0");
-                    //Now we need to add the string to the heap
-                    frontpos = obj.setHeap(f);
-                    pointer=String.format("%02X", frontpos);
-                    obj.setEnv(pointer);
+                    obj.setEnv(obj.falsepos);
                     obj.setEnv("A2");
                     obj.setEnv("02");
                     obj.setEnv("FF");
@@ -1394,12 +1450,9 @@ public class CodeGen {
                 obj.setEnv(tempnum);
                 obj.setEnv(addr);
             }else if(next.name.equals("true")){
-                next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                //next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
                 obj.setEnv("A9");
-                //Now we need to add the string to the heap
-                int frontpos = obj.setHeap(next.name);
-                String pointer=String.format("%02X", frontpos);
-                obj.setEnv(pointer);
+                obj.setEnv(obj.truepos);
                 //Now store it in mem
                 obj.setEnv("8D");
                 String loc = lookupAddr(obj,beingAssigned.name,AssnNode);
@@ -1408,12 +1461,9 @@ public class CodeGen {
                 obj.setEnv(tempnum);
                 obj.setEnv(addr);
             }else if(next.name.equals("false")){
-                next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
+                //next.name = '"'+next.name+'"';//This is a bit hacky ill admit. BUT.. If we add the quotes, we can use the same function that will strip them and add the string to the heap.
                 obj.setEnv("A9");
-                //Now we need to add the string to the heap
-                int frontpos = obj.setHeap(next.name);
-                String pointer=String.format("%02X", frontpos);
-                obj.setEnv(pointer);
+                obj.setEnv(obj.falsepos);
                 //Now store it in mem
                 obj.setEnv("8D");
                 String loc = lookupAddr(obj,beingAssigned.name,AssnNode);
@@ -1463,6 +1513,8 @@ public class CodeGen {
                 if(env.get(i).equals(key)){
                     // System.out.println("FOUND: "+key+" AT: "+i);
                     // System.out.println("JUMP TO: "+jmp.get(key));
+                    String form = jmp.get(key);
+                    System.out.println("DEBUG: BACKPATCHING - "+key+" AT: "+String.format("%02X", i));
                     int to = Integer.parseInt(jmp.get(key));
                     int dist = to-i-1;//We need to subtract an additional 1 because the jump distance assumes we skip the last place
                     String fin =String.format("%02X", dist);
@@ -1490,6 +1542,11 @@ public class CodeGen {
                 ArrayList<String> env = obj.getEnv();
                 while(!env.get(c).equals("--")){
                     c++;
+                    if(c==env.size()-2){
+                        ArrayList<String> e = obj.getErrors();
+                        e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                        return obj;
+                    }
                 }
                 obj.jump.put(key,String.valueOf(c));
                 //System.out.println("PUTTING: "+key+" AT: "+c);
@@ -1512,24 +1569,43 @@ public class CodeGen {
     public static TableObj resolveTMP(TableObj obj){
         int spot=0;
         ArrayList<String> env = obj.getEnv();
+        boolean err=false;
+        //Generate(obj);
         while(!env.get(spot).equals("--")){
             spot++;
+            if(spot==env.size()-2){
+                ArrayList<String> e = obj.getErrors();
+                e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                return obj;
+            }
         }
         // System.out.println(spot);
         // System.out.println(String.format("%02X", spot));
         // System.out.println(env.get(spot));
-        for(String key: obj.getTempTable().keySet()){
-            //String data = obj.getTempTable().get(key);
-            // System.out.println("KEY: "+key);
-            // System.out.println("DATA: "+data);
-            String tempnum = key.substring(0,2);//T1
-            for(int i=0; i<env.size(); i++){
-                if(env.get(i).equals(tempnum)){
-                    env.set(i,String.format("%02X", spot));
+        if(err==true){
+            //skip
+        }else{
+            for(String key: obj.getTempTable().keySet()){
+                //String data = obj.getTempTable().get(key);
+                // System.out.println("KEY: "+key);
+                // System.out.println("DATA: "+data);
+                String tempnum = key.substring(0,2);//T1
+                for(int i=0; i<env.size(); i++){
+                    if(env.get(i).equals(tempnum)){
+                        //System.out.println("DEBUG: BACKPATCHING - "+tempnum+" AT - "+spot);
+                        env.set(i,String.format("%02X", spot));
+                    }
+                }
+                System.out.println("DEBUG: BACKPATCHING - "+tempnum+" AT - "+String.format("%02X", spot));
+                if(env.get(spot).equals("--")){
+                    env.set(spot,"!!");
+                    spot++;
+                }else{
+                    ArrayList<String> e = obj.getErrors();
+                    e.add("DEBUG: ERROR STACK RAN INTO HEAP");
+                    return obj;
                 }
             }
-            env.set(spot,"!!");
-            spot++;
         }
         // for(int i=0; i<obj.getEnv().size(); i++){
         //     System.out.print(obj.getEnv().get(i)+" ");
